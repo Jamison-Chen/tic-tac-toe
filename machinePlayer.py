@@ -262,7 +262,8 @@ class machinePlayer(player.Player):
                 i -= 1
 
     def postOrder(self, n):
-        print(str(n.getName())+"/"+str(n.getValue())+"/" +
-              str(n.getParent())+"/"+str(n.printChildrenList()))
+        if n.getChildrenList() != []:
+            print(str(n.getName())+"/"+str(n.getValue())+"/" +
+                  str(n.getParent()).split(" ")[-1]+"/"+str(n.printChildrenList()))
         for each in n.getChildrenList():
             self.postOrder(each)

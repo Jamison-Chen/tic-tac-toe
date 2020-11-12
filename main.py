@@ -110,13 +110,13 @@ def judge(lastMover, human=""):
             p2Win += 1
             if human == "random":
                 rdPlayer.resetChoices()
-        #print("Path: " + str(player._machinePlayer__path))
+        print("Path: " + str(player._machinePlayer__path))
         player.clearPath()
         gameRunning = False
         totalGames += 1
     elif not np.any(board == " "):
         player.doBackpropagation(0)
-        #print("Path: " + str(player._machinePlayer__path))
+        print("Path: " + str(player._machinePlayer__path))
         player.clearPath()
         if human == "random":
             rdPlayer.resetChoices()
@@ -192,8 +192,9 @@ def trainStatisticsRefresh():
 # train(10000)
 # printTrainResult()
 # trainStatisticsRefresh()
-play(100, "random")
+play(50, "random")
 printTrainResult()
+print(player.postOrder(player.root()))
 # trainStatisticsRefresh()
 #play(10000, "random")
 # printTrainResult()
@@ -224,6 +225,6 @@ printTrainResult()
 # trainStatisticsRefresh()
 # train(10000)
 # printTrainResult()
-play(5, "human")
+# play(5, "human")
 # printTrainResult()
 # player.postOrder(player.root())
