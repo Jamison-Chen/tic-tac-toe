@@ -25,7 +25,7 @@ class Node:
         s = ""
         for each in self.__childrenList:
             s += str(each.getName())
-            s += ","
+            s += ", "
         return s
 
     def setParent(self, p):

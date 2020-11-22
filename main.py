@@ -15,20 +15,30 @@ p2Win = 0
 tie = 0
 player = mp.machinePlayer()
 # player = mp2.machinePlayer()
-# player.selfTraining(30000)
+player2 = mp.machinePlayer()
 rdPlayer = rp.randomPlayer(
+    [(0, 0), (0, 1), (0, 2),
+     (1, 0), (1, 1), (1, 2),
+     (2, 0), (2, 1), (2, 2)])
+rdPlayer2 = rp.randomPlayer(
     [(0, 0), (0, 1), (0, 2),
      (1, 0), (1, 1), (1, 2),
      (2, 0), (2, 1), (2, 2)])
 
 
-def player1MakeMove(human=""):
-    global player, rdPlayer, totalGames, gameRunning, board
-    if human == "":
-        player1_pos = player.select(1)
-        # player.postOrder(player.root())
-        board[player1_pos[1]][player1_pos[0]] = "O"
-    elif human == "human":
+def player1MakeMove(role="", opponent=""):
+    global player, player2, rdPlayer, rdPlayer2, totalGames, gameRunning, board
+    if role == "":
+        pos = player.select(playerName=1)
+        board[pos[1]][pos[0]] = "O"
+        if opponent == "random":
+            rdPlayer2.updateChoices(pos)
+        elif opponent == "":
+            player2.moveWithOpponent(1, pos)
+        elif opponent == "human":
+            print(board)
+            print()
+    elif role == "human":
         valid = False
         while not valid:
             print("Please make choice.")
@@ -43,49 +53,93 @@ def player1MakeMove(human=""):
             if valid and board[int(inpNp[1])][int(inpNp[0])] != " ":
                 print("This position is occupied.")
                 valid = False
-        board[int(inpNp[1])][int(inpNp[0])] = "O"
-        player.moveWithOpponent(1, (int(inpNp[0]), int(inpNp[1])))
+        pos = (int(inpNp[0]), int(inpNp[1]))
+        board[pos[1]][pos[0]] = "O"
         print(board)
         print()
-    elif human == "random":
-        player1_pos = rdPlayer.select()
-        player.moveWithOpponent(1, player1_pos)
-        board[player1_pos[1]][player1_pos[0]] = "O"
-    # print(board)
-    # print()
+        if opponent == "":
+            player2.moveWithOpponent(1, pos)
+        elif opponent == "random":
+            rdPlayer2.updateChoices(pos)
+        # elif opponent == "human":
+            # Nothing to do.
+    elif role == "random":
+        pos = rdPlayer.select()
+        board[pos[1]][pos[0]] = "O"
+        if opponent == "":
+            player2.moveWithOpponent(1, pos)
+        elif opponent == "human":
+            print(board)
+            print()
+        elif opponent == "random":
+            rdPlayer2.updateChoices(pos)
 
 
-def player2MakeMove(human=""):
-    global player, rdPlayer, totalGames, gameRunning, board
-    if human == "human":
-        time.sleep(1)
-    player2_pos = player.select(2)
-    if human == "random":
-        rdPlayer.updateChoices(player2_pos)
-    board[player2_pos[1]][player2_pos[0]] = "X"
-    if human == "human":
+def player2MakeMove(role="", opponent=""):
+    global player, player2, rdPlayer, rdPlayer2, totalGames, gameRunning, board
+    if role == "random":
+        pos = rdPlayer2.select()
+        board[pos[1]][pos[0]] = "X"
+        if opponent == "":
+            player.moveWithOpponent(2, pos)
+        elif opponent == "human":
+            print(board)
+            print()
+        elif opponent == "random":
+            rdPlayer.updateChoices(pos)
+    elif role == "human":
+        valid = False
+        while not valid:
+            print("Please make choice.")
+            inP = input().split(",")
+            inpNp = np.array(inP)
+            for each in inpNp:
+                valid = True
+                if not each.isdigit():
+                    print("Invalid Operation!")
+                    valid = False
+                    break
+            if valid and board[int(inpNp[1])][int(inpNp[0])] != " ":
+                print("This position is occupied.")
+                valid = False
+        pos = (int(inpNp[0]), int(inpNp[1]))
+        board[pos[1]][pos[0]] = "X"
         print(board)
         print()
-    # print(board)
-    # print()
+        if opponent == "":
+            player.moveWithOpponent(2, pos)
+        elif opponent == "random":
+            rdPlayer.updateChoices(pos)
+        # elif opponent == "human":
+            # Nothing to do.
+    elif role == "":
+        pos = player2.select(playerName=2)
+        board[pos[1]][pos[0]] = "X"
+        if opponent == "":
+            player.moveWithOpponent(2, pos)
+        elif opponent == "human":
+            print(board)
+            print()
+        elif opponent == "random":
+            rdPlayer.updateChoices(pos)
 
 
-def judge(lastMover, human=""):
-    global player, rdPlayer, p1Win, p2Win, tie, totalGames, gameRunning, board, mover
+def judge(lastMover, p1="", p2=""):
+    global player, player2, rdPlayer, rdPlayer2, p1Win, p2Win, tie, totalGames, gameRunning, board, mover
     winner = None
     hasWinner = False
-    for each in board:
+    for each in board:  # Check each row
         if np.all(each == each[0]) and each[0] != " ":
             winner = each[0]
             hasWinner = True
             break
-    if not hasWinner:
+    if not hasWinner:  # Check each column
         for each in board.T:
             if np.all(each == each[0]) and each[0] != " ":
                 winner = each[0]
                 hasWinner = True
                 break
-    if not hasWinner:
+    if not hasWinner:   # Check diagnals
         diagnal1 = np.array([board[0][0], board[1][1], board[2][2]])
         diagnal2 = np.array([board[0][2], board[1][1], board[2][0]])
         if np.all(diagnal1 == diagnal1[0]) and diagnal1[0] != " ":
@@ -95,31 +149,62 @@ def judge(lastMover, human=""):
             winner = diagnal2[0]
             hasWinner = True
     if hasWinner:
-        player.doBackpropagation(1)
         if winner == "O":
-            #print("Player1 wins!!!!!!\n\n")
+            # print("Player1 wins!!!!!!\n\n")
             p1Win += 1
-            if human == "human":
-                player.doBackpropagation(-1)
-            elif human == "":
+            if p1 != "" and p2 == "":
+                player2.doBackpropagation(-1)
+                player2.clearPath()
+            elif p1 == "" and p2 == "":
                 player.doBackpropagation(1)
-            if human == "random":
-                rdPlayer.resetChoices()
+                player2.doBackpropagation(-1)
+                player.clearPath()
+                player2.clearPath()
+            elif p1 == "" and p2 != "":
+                player.doBackpropagation(1)
+                player.clearPath()
+            # elif p1!="" and p2!="":
+                # Nothing to do.
         else:
-            #print("Player2 wins!!!!!!\n\n")
+            # print("Player2 wins!!!!!!\n\n")
             p2Win += 1
-            if human == "random":
-                rdPlayer.resetChoices()
-        print("Path: " + str(player._machinePlayer__path))
-        player.clearPath()
+            if p1 != "" and p2 == "":
+                player2.doBackpropagation(1)
+                player2.clearPath()
+            elif p1 == "" and p2 == "":
+                player.doBackpropagation(-1)
+                player2.doBackpropagation(1)
+                player.clearPath()
+                player2.clearPath()
+            elif p1 == "" and p2 != "":
+                player.doBackpropagation(-1)
+                player.clearPath()
+            # elif p1!="" and p2!="":
+                # Nothing to do.
+        if p1 == "random":
+            rdPlayer.resetChoices()
+        if p2 == "random":
+            rdPlayer2.resetChoices()
         gameRunning = False
         totalGames += 1
-    elif not np.any(board == " "):
-        player.doBackpropagation(0)
-        print("Path: " + str(player._machinePlayer__path))
-        player.clearPath()
-        if human == "random":
+    elif not np.any(board == " "):  # Tie
+        if p1 != "" and p2 == "":
+            player2.doBackpropagation(0)
+            player2.clearPath()
+        elif p1 == "" and p2 == "":
+            player.doBackpropagation(0)
+            player2.doBackpropagation(0)
+            player.clearPath()
+            player2.clearPath()
+        elif p1 == "" and p2 != "":
+            player.doBackpropagation(0)
+            player.clearPath()
+        # elif p1!="" and p2!="":
+            # Nothing to do.
+        if p1 == "random":
             rdPlayer.resetChoices()
+        if p2 == "random":
+            rdPlayer2.resetChoices()
         # print("Tie!\n\n")
         tie += 1
         gameRunning = False
@@ -140,29 +225,33 @@ def newGame():
         p2Start += 1
 
 
-def play(trainTimes, p1=""):
+def play(trainTimes, p1="", p2=""):
     global gameRunning, mover, totalGames
     newGame()
     while gameRunning:
         if mover == 1:
-            player1MakeMove(p1)
-            judge(mover, p1)
+            player1MakeMove(role=p1, opponent=p2)
+            judge(mover, p1=p1, p2=p2)
             if totalGames == trainTimes:
                 break
-            if not gameRunning:
+            if not gameRunning:  # Player 1 wins
                 newGame()
                 if mover == 1:
                     continue
-        player2MakeMove(p1)
-        judge(mover, p1)
+        player2MakeMove(role=p2, opponent=p1)
+        judge(mover, p1=p1, p2=p2)
         if totalGames == trainTimes:
             break
-        if not gameRunning:
+        if not gameRunning:  # Player 2 wins
             newGame()
 
 
-def train(trainTimes):
-    play(trainTimes)
+def random_train(trainTimes):
+    play(trainTimes=trainTimes, p1="", p2="random")
+
+
+def machine_train(trainTimes):
+    play(trainTimes=trainTimes, p1="", p2="")
 
 
 def printTrainResult():
@@ -183,48 +272,31 @@ def trainStatisticsRefresh():
     tie = 0
 
 
-# train(10000)
-# printTrainResult()
-# trainStatisticsRefresh()
-# train(10000)
-# printTrainResult()
-# trainStatisticsRefresh()
-# train(10000)
-# printTrainResult()
-# trainStatisticsRefresh()
-play(50, "random")
+random_train(10000)
 printTrainResult()
-print(player.postOrder(player.root()))
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-#play(10000, "random")
-# printTrainResult()
-# trainStatisticsRefresh()
-# train(10000)
-# printTrainResult()
-# play(5, "human")
-# printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+play(3, p1="", p2="human")
 # player.postOrder(player.root())
