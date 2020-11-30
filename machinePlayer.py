@@ -3,6 +3,9 @@ import numpy as np
 import random
 import player
 
+# 可優化點:目前透過minmax的方法只能想到兩步以內的未來
+# 所以很難學會某些「後手必須在第一手就下對才不會輸的棋局」
+
 
 class machinePlayer(player.Player):
 
