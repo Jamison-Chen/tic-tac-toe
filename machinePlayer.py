@@ -12,6 +12,11 @@ class machinePlayer(player.Player):
         self.__size = 1
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),
                              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+        ####### board ########
+        #(0, 0) (1, 0) (2, 0)#
+        #(0, 1) (1, 1) (2, 1)#
+        #(0, 2) (1, 2) (2, 2)#
+        ######################
         self.__path = []  # [((x,y),player), ((x,y),player), ...]
 
     def root(self):
@@ -39,6 +44,10 @@ class machinePlayer(player.Player):
         n.setValue((n.getValue()[0]+v[0], n.getValue()[1]+v[1]))
         return n
 
+    def updatePath(self, pos, playerName):
+        self.__allChoices.remove(pos)
+        self.__path.append((pos, playerName))
+
     def moveWithOpponent(self, opponentName, opponentMovePos):
         if self.isExternal(self.__temp):
             self.expand()
@@ -47,7 +56,7 @@ class machinePlayer(player.Player):
         for each in children_list:
             if each.getName() == opponentMovePos:
                 self.__temp = each
-                self.updatePath(opponentMovePos, opponentName)
+                self.updatePath(pos=opponentMovePos, playerName=opponentName)
                 updated = True
                 break
         if not updated:
@@ -62,46 +71,45 @@ class machinePlayer(player.Player):
     def doMinMax(self, childrenList):
         minMax = []  # minMax: [[max score, 0th node],[max score, 1st node],...]
         for i in range(len(childrenList)):
-            # This child has already been explored before.
+            # child i has been explored before.
             if self.isInternal(childrenList[i]):
                 ll = childrenList[i].getChildrenList()
                 maxScore = -float('inf')
+                this = 0
                 for each in ll:
-                    # The denominator is not 0, which means the child's child has been visited.
+                    # The denominator is not 0, which means child i's child(each) has been visited.
                     if each.getValue()[1] != 0:
                         this = each.getValue()[0]/each.getValue()[1]
-                    # The denominator is 0, which means the child's child has never been visited.
+                    # The denominator is 0, which means child i's child(each) has never been visited.
                     else:
-                        this = 0
+                        # This can be changed if you want to explore nodes that hasn't been visited.
+                        # this = 0
+                        # Strategy 2: tend to explore new paths
+                        this = -float('inf')
                     if this > maxScore:
                         maxScore = this
                 minMax.append([maxScore, i])
             else:
-                # childrenList[i].getValue()[1] != 0 and "external" mean this child is the last step,
-                # and if this child is the winning step...
+                # "getValue()[1]!=0" and "isExternal" mean child i is the last step,
+                # and if child i is a "winning" step, getValue()[0] must > 0, so...
                 if childrenList[i].getValue()[0] > 0 and childrenList[i].getValue()[1] != 0:
-                    # minMax.append([-float('inf'), i])
                     return [[-float('inf'), i], False]
-                # or if this child is the losing step...
+                # or if child i is a "losing" step...
                 elif childrenList[i].getValue()[0] < 0 and childrenList[i].getValue()[1] != 0:
                     minMax.append([float('inf'), i])
-                # or if this child is the drawing step (must be the 9th step)...
+                # or if child i is a "drawing" step (must be the 9th step)...
                 elif childrenList[i].getValue()[0] == 0 and childrenList[i].getValue()[1] != 0:
                     minMax.append([0, i])
-                # or if this child has never been visited.
+                # "getValue()[1]==0" and "isExternal" mean child i has never been visited...
                 elif childrenList[i].getValue()[1] == 0:
-                    # Strategy 1: tend to explore the new path
+                    # Strategy 1: tend to explore new paths
                     minMax.append([-float('inf'), i])
-                    # Strategy 2: tend to follow the old but winning path
+                    # Strategy 2: tend to follow the previous-winning path
                     # minMax.append([0, i])
         minMax.sort()   # small to large
         minMaxNp = np.array(minMax)[:, 0]
         allTheSame = np.all(minMaxNp == minMaxNp[0])
         return [minMax[0], allTheSame]
-
-    def updatePath(self, pos, playerName):
-        self.__allChoices.remove(pos)
-        self.__path.append((pos, playerName))
 
     ################ CORE!!!!##################
     def select(self, playerName):
@@ -129,21 +137,21 @@ class machinePlayer(player.Player):
             # Use position as the name of the node expanded:
             self.__temp.setChild(node.Node(p=self.__temp, n=each, v=(0, 0)))
 
-    # Hint: In this game, last mover is impossible to be a loser.
+    # Mind: In this game, last mover is impossible to be a loser.
     def doBackpropagation(self, winLossTie):
         i = -1
         lastMover = self.__path[i][1]
         if winLossTie == 1:  # last mover won
             while not self.isRoot(self.__temp):
                 if self.__path[i][1] == lastMover:
-                    self.updateValue(self.__temp, (1, 1))
+                    self.updateValue(n=self.__temp, v=(1, 1))
                 else:
-                    self.updateValue(self.__temp, (-1, 1))
+                    self.updateValue(n=self.__temp, v=(-1, 1))
                 self.__temp = self.__temp.getParent()
                 i -= 1
         else:  # last mover made it tie
             while not self.isRoot(self.__temp):
-                self.updateValue(self.__temp, (0, 1))
+                self.updateValue(n=self.__temp, v=(0, 1))
                 self.__temp = self.__temp.getParent()
                 i -= 1
 

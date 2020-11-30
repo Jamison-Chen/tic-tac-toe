@@ -14,7 +14,6 @@ p1Win = 0
 p2Win = 0
 tie = 0
 player = mp.machinePlayer()
-# player = mp2.machinePlayer()
 player2 = mp.machinePlayer()
 rdPlayer = rp.randomPlayer(
     [(0, 0), (0, 1), (0, 2),
@@ -172,12 +171,12 @@ def judge(lastMover, p1="", p2=""):
                 player2.doBackpropagation(1)
                 player2.clearPath()
             elif p1 == "" and p2 == "":
-                player.doBackpropagation(-1)
+                player.doBackpropagation(1)
                 player2.doBackpropagation(1)
                 player.clearPath()
                 player2.clearPath()
             elif p1 == "" and p2 != "":
-                player.doBackpropagation(-1)
+                player.doBackpropagation(1)
                 player.clearPath()
             # elif p1!="" and p2!="":
                 # Nothing to do.
@@ -298,5 +297,5 @@ printTrainResult()
 trainStatisticsRefresh()
 random_train(10000)
 printTrainResult()
-play(3, p1="", p2="human")
+# play(3, p1="", p2="human")
 # player.postOrder(player.root())
