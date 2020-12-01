@@ -270,15 +270,29 @@ def trainStatisticsRefresh():
     tie = 0
 
 
+# 想法：機器的自我訓練，在後期就好像是跟一個聰明的人下棋，所以是讓機器「學會如何不要輸」，
+# 然而這樣還不夠，因為總是有思慮不周的地方，所以另外讓機器與隨機下棋機訓練，目的是讓機器「學會如何不讓對手贏」。
 machine_train(10000)
 printTrainResult()
 
 trainStatisticsRefresh()
-machine_train(10000)
+machine_train(5000)
 printTrainResult()
 
 trainStatisticsRefresh()
-machine_train(10000)
+machine_train(5000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
 printTrainResult()
 
 trainStatisticsRefresh()
@@ -296,5 +310,13 @@ printTrainResult()
 trainStatisticsRefresh()
 random_train(10000)
 printTrainResult()
-# play(3, p1="", p2="human")
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+
+trainStatisticsRefresh()
+random_train(10000)
+printTrainResult()
+play(3, p1="", p2="human")
 # player.postOrder(player.root())
