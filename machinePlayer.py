@@ -83,6 +83,10 @@ class machinePlayer(player.Player):
                     # The denominator is not 0, which means child i's child(each) has been visited.
                     if each.getValue()[1] != 0:
                         this = each.getValue()[0]/each.getValue()[1]
+                        # 可以想得更遠：若下下步（對方的步數）的所有小孩（到時候自己的選擇）的分數皆 < 0
+                        # 當然有可能是一開始猜得不好所以都輸了，但隨著訓練場次的增加，則更有可能會是因為
+                        # 下下步是個對方的「必勝步」，此時他的 value 應該無限大，不過不能真的讓他無限大，
+                        # 因為就是真的有可能只是一開始猜得不好。
                     # The denominator is 0, which means child i's child(each) has never been visited.
                     else:
                         # This can be changed if you want to explore nodes that hasn't been visited.
