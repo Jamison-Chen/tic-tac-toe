@@ -34,6 +34,7 @@ def player1MakeMove(role="", opponent=""):
         # elif opponent == "":
         #     player2.moveWithOpponent(1, pos)
         elif opponent == "human":
+            time.sleep(0.5)
             print(board)
             print()
     elif role == "human":
@@ -67,6 +68,7 @@ def player1MakeMove(role="", opponent=""):
         # if opponent == "":
         #     player2.moveWithOpponent(1, pos)
         if opponent == "human":
+            time.sleep(0.5)
             print(board)
             print()
         elif opponent == "random":
@@ -81,6 +83,7 @@ def player2MakeMove(role="", opponent=""):
         if opponent == "":
             player.moveWithOpponent(2, pos)
         elif opponent == "human":
+            time.sleep(0.5)
             print(board)
             print()
         elif opponent == "random":
@@ -116,6 +119,7 @@ def player2MakeMove(role="", opponent=""):
         # if opponent == "":
         #     player.moveWithOpponent(2, pos)
         if opponent == "human":
+            time.sleep(0.5)
             print(board)
             print()
         elif opponent == "random":
@@ -210,12 +214,13 @@ def judge(lastMover, p1="", p2=""):
     mover = -1*lastMover+3  # input 2, output1; input 1, output 2
 
 
-def newGame():
+def newGame(p1, p2):
     global gameRunning, mover, p1Start, p2Start, board
     gameRunning = True
     board = np.array([[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]])
-    # print(board)
-    # print()
+    if p1 == "human" or p2 == "human":
+        print(board)
+        print()
     mover = random.randint(1, 2)
     if mover == 1:
         p1Start += 1
@@ -225,7 +230,7 @@ def newGame():
 
 def play(trainTimes, p1="", p2=""):
     global gameRunning, mover, totalGames
-    newGame()
+    newGame(p1=p1, p2=p2)
     while gameRunning:
         if mover == 1:
             player1MakeMove(role=p1, opponent=p2)
@@ -233,7 +238,7 @@ def play(trainTimes, p1="", p2=""):
             if totalGames == trainTimes:
                 break
             if not gameRunning:  # Player 1 wins
-                newGame()
+                newGame(p1, p2)
                 if mover == 1:
                     continue
         player2MakeMove(role=p2, opponent=p1)
@@ -241,23 +246,15 @@ def play(trainTimes, p1="", p2=""):
         if totalGames == trainTimes:
             break
         if not gameRunning:  # Player 2 wins
-            newGame()
-
-
-def random_train(trainTimes):
-    play(trainTimes=trainTimes, p1="", p2="random")
-
-
-def machine_train(trainTimes):
-    play(trainTimes=trainTimes, p1="", p2="")
+            newGame(p1, p2)
 
 
 def printTrainResult():
     global p1Win, p2Win, tie, totalGames, p1Start, p2Start
-    print("Game start with P1: "+str(p1Start)+" / P2: "+str(p2Start))
-    print("P1 winning rate: " + str(p1Win/totalGames*100) + "%")
-    print("P2 winning rate: " + str(p2Win/totalGames*100) + "%")
-    print("Tie rate: " + str(tie/totalGames*100) + "%")
+    print("Game start with P1: %s / P2: %s" % (str(p1Start), str(p2Start)))
+    print("P1 winning rate: %.2f%%" % (p1Win/totalGames*100))
+    print("P2 winning rate: %.2f%%" % (p2Win/totalGames*100))
+    print("Tie rate: %.2f%%" % (tie/totalGames*100))
 
 
 def trainStatisticsRefresh():
@@ -270,53 +267,23 @@ def trainStatisticsRefresh():
     tie = 0
 
 
+def train(trainTimes, batch=10000, train_type=""):
+    epoch = trainTimes//batch
+    mod = trainTimes % batch
+    trainStatisticsRefresh()
+    for i in range(epoch):
+        play(trainTimes=batch, p1="", p2=train_type)
+        printTrainResult()
+        trainStatisticsRefresh()
+    if mod != 0:
+        play(trainTimes=mod, p1="", p2=train_type)
+        printTrainResult()
+        trainStatisticsRefresh()
+
+
 # 想法：機器的自我訓練，在後期就好像是跟一個聰明的人下棋，所以是讓機器「學會如何不要輸」，
 # 然而這樣還不夠，因為總是有思慮不周的地方，所以另外讓機器與隨機下棋機訓練，目的是讓機器「學會如何不讓對手贏」。
-machine_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-machine_train(5000)
-printTrainResult()
-
-trainStatisticsRefresh()
-machine_train(5000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-
-trainStatisticsRefresh()
-random_train(10000)
-printTrainResult()
-play(3, p1="", p2="human")
+train(15000, batch=5000)
+train(70000, batch=10000, train_type="random")
+play(1, p1="", p2="human")
 # player.postOrder(player.root())
