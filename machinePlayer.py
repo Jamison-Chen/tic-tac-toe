@@ -4,7 +4,7 @@ import random
 import player
 
 # 可優化點:目前透過minmax的方法只能想到兩步以內的未來
-# 所以很難學會某些「後手必須在第一手就下對才不會輸的棋局」
+# 所以很難學會某些「後手必須在第一手就下對才不會輸」的棋局
 
 
 class machinePlayer(player.Player):
@@ -118,7 +118,6 @@ class machinePlayer(player.Player):
         allTheSame = np.all(minMaxNp == minMaxNp[0])
         return [minMax[0], allTheSame]
 
-    ################ CORE!!!!##################
     def select(self, playerName):
         if self.isExternal(self.__temp):
             self.expand()
@@ -145,7 +144,7 @@ class machinePlayer(player.Player):
             self.__temp.setChild(node.Node(p=self.__temp, n=each, v=(0, 0)))
 
     # Mind: In this game, last mover is impossible to be a loser.
-    def doBackpropagation(self, winLossTie):
+    def backPropagate(self, winLossTie):
         i = -1
         lastMover = self.__path[i][1]
         if winLossTie == 1:  # last mover won
@@ -162,7 +161,7 @@ class machinePlayer(player.Player):
                 self.__temp = self.__temp.getParent()
                 i -= 1
 
-    def postOrder(self, n):
+    def postOrderPrintTree(self, n):
         if n.getChildrenList() != []:
             print(str(n.getName())+"\t" +
                   str(n.getValue())+"\t" +
