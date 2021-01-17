@@ -28,5 +28,4 @@ You'll see the randomPlayer being instanciated in both main.py and main_v2.py.
 These two files are the bases of machinePlayer.py and randomPlayer.py, providing lots of essential methods.
 
 ## Files Not Used
-* mp2.py
 * test.ipynb
