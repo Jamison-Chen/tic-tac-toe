@@ -1,6 +1,6 @@
 import machinePlayer as mp
 import randomPlayer as rp
-# import mp2
+# import mp2 as mp
 import numpy as np
 import random
 import time
@@ -119,29 +119,21 @@ class ticTacToe():
             if winner == "O":
                 # print("Player1 wins!!!!!!\n\n")
                 self.p1Win += 1
-                if p1 == "" and p2 == "":
-                    self.player.backPropagate(1)
-                    # self.player2.backPropagate(-1)
-                    self.player.clearPath()
-                    # self.player2.clearPath()
-                elif p1 == "" and p2 != "":
-                    self.player.backPropagate(1)
-                    self.player.clearPath()
-                elif p1 != "" and p2 != "":
-                    pass
             else:
                 # print("Player2 wins!!!!!!\n\n")
                 self.p2Win += 1
-                if p1 == "" and p2 == "":
-                    self.player.backPropagate(1)
-                    # player2.backPropagate(1)
-                    self.player.clearPath()
-                    # player2.clearPath()
-                elif p1 == "" and p2 != "":
-                    self.player.backPropagate(1)
-                    self.player.clearPath()
-                elif p1 != "" and p2 != "":
-                    pass
+
+            if p1 == "" and p2 == "":
+                self.player.backPropagate(1)
+                # player2.backPropagate(1)
+                self.player.clearPath()
+                # player2.clearPath()
+            elif p1 == "" and p2 != "":
+                self.player.backPropagate(1)
+                self.player.clearPath()
+            elif p1 != "" and p2 != "":
+                pass
+
             if p1 == "random":
                 self.rdPlayer.resetChoices()
             if p2 == "random":
@@ -159,6 +151,7 @@ class ticTacToe():
                 self.player.clearPath()
             elif p1 != "" and p2 != "":
                 pass
+
             if p1 == "random":
                 self.rdPlayer.resetChoices()
             if p2 == "random":
@@ -219,23 +212,20 @@ class ticTacToe():
     def trainMachine(self, trainTimes, batch, train_type=""):
         epoch = trainTimes//batch
         mod = trainTimes % batch
-        self.trainStatisticsRefresh()
         for i in range(epoch):
+            self.trainStatisticsRefresh()
             self.play(trainTimes=batch, p1="", p2=train_type)
             self.printTrainResult()
-            self.trainStatisticsRefresh()
         if mod != 0:
+            self.trainStatisticsRefresh()
             self.play(trainTimes=mod, p1="", p2=train_type)
             self.printTrainResult()
-            self.trainStatisticsRefresh()
 
 
-# 想法：
-# 機器的自我訓練，在後期就好像是跟一個聰明的人下棋，所以是讓機器「學會如何不要輸」，然而這樣還不夠，
-# 因為總是有思慮不周的地方，所以另外讓機器與「隨機下棋機」訓練，目的是讓機器「學會如何不讓對手贏」。
 if __name__ == "__main__":
+    os.system('cls')
     game = ticTacToe()
-    game.trainMachine(600, batch=200)
-    game.trainMachine(60000, batch=10000, train_type="random")
+    # game.trainMachine(600, batch=200)
+    game.trainMachine(100000, batch=10000, train_type="random")
     game.play(1, p1="", p2="human")
     # game.player.postOrderPrintTree(player.root())

@@ -71,7 +71,7 @@ class machinePlayer(player.Player):
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),
                              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
-    def doMinMax(self, childrenList):
+    def minimax(self, childrenList):
         minMax = []  # minMax: [[max score, 0th node],[max score, 1st node],...]
         for i in range(len(childrenList)):
             # child i has been explored before.
@@ -126,7 +126,7 @@ class machinePlayer(player.Player):
                 0, len(child_list)-1)]    # Rollout Policy
         else:
             child_list = self.__temp.getChildrenList()
-            [minMax, allTheSame] = self.doMinMax(child_list)
+            [minMax, allTheSame] = self.minimax(child_list)
             if allTheSame:
                 self.__temp = child_list[random.randint(
                     0, len(child_list)-1)]    # Rollout Policy
@@ -141,9 +141,9 @@ class machinePlayer(player.Player):
         random.shuffle(self.__allChoices)
         for each in self.__allChoices:
             # Use position as the name of the node expanded:
-            self.__temp.setChild(node.Node(p=self.__temp, n=each, v=(0, 0)))
+            self.__temp.appendChild(node.Node(p=self.__temp, n=each, v=(0, 0)))
 
-    # Mind: In this game, last mover is impossible to be a loser.
+    # Hint: In this game, the last mover is impossible to be a loser.
     def backPropagate(self, winLossTie):
         i = -1
         lastMover = self.__path[i][1]
@@ -161,12 +161,36 @@ class machinePlayer(player.Player):
                 self.__temp = self.__temp.getParent()
                 i -= 1
 
-    def postOrderPrintTree(self, n):
+    def postOrderPrintTree2(self, n=""):
+        if n == "":
+            n = self.__root
         if n.getChildrenList() != []:
-            print(str(n.getName())+"\t" +
-                  str(n.getValue())+"\t" +
-                  str(n.getParent()).split(" ")[-1][-9:-1]+"\t" +
-                  str(len(n.getChildrenList()))+"  " +
-                  str(n.printChildrenList()))
+            if self.isRoot(n):
+                print("Name\tValue\tParent\t#\tChildren\n" +
+                      "_________________________________________________")
+                print(str(n.getName())+"\t" +
+                      str(n.getValue())+"\t" +
+                      "None\t" +
+                      str(len(n.getChildrenList()))+"\t" +
+                      n.printChildrenList().strip(", "))
+            else:
+                print(str(n.getName())+"\t" +
+                      str(n.getValue())+"\t" +
+                      str(n.getParent().getName())+"\t" +
+                      str(len(n.getChildrenList()))+"\t" +
+                      n.printChildrenList().strip(", "))
+        else:
+            if self.isRoot(n):
+                print("Name\tValue\tParent\tChild Number\tChildren\n" +
+                      "_________________________________________________")
+                print(str(n.getName())+"\t" +
+                      str(n.getValue())+"\t" +
+                      "None\t" +
+                      "No")
+            else:
+                print(str(n.getName())+"\t" +
+                      str(n.getValue())+"\t" +
+                      str(n.getParent().getName())+"\t" +
+                      "No")
         for each in n.getChildrenList():
-            self.postOrder(each)
+            self.postOrderPrintTree2(each)

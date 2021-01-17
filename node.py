@@ -2,7 +2,7 @@ class Node:
     def __init__(self, p, n, v):
         self.__parent = p
         self.__name = n
-        self.__value = v  # (total value, time visited)
+        self.__value = v
         self.__childrenList = []
         self.__endPoint = False
 
@@ -37,7 +37,7 @@ class Node:
     def setValue(self, v):
         self.__value = v
 
-    def setChild(self, c):
+    def appendChild(self, c):
         self.__childrenList.append(c)
 
     def setEndPoint(self, tf):
