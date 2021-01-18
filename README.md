@@ -4,7 +4,7 @@ This project is a game implemented with Reinforcement Learning and Minimax Algor
 ## File Descriptions
 ### machinePlayer.py
 This file contains the core machine learning logic (Version1).
-Key strategies used include Monte-Carlo Tree Search, Minimax Algorithm, etc.
+The key strategy used is the Minimax algorithm.
 
 ### main.py
 You may see this file as the battle field of Tic Tac Toe for machinePlayer (Version1 ONLY), so the judge is implemented inside.
