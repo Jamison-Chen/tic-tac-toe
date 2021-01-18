@@ -13,7 +13,7 @@ The training times recommended is around 50,000 to 70,000. That will take 1 to 1
 
 ### machinePlayer_v2.py
 This file contains the core machine learning logic (Version2).
-The main differences between this file and "machinePlayer.py" is the different ways we implemented with on both the Minimax Algorithm part and the Back Propagation part.
+The main differences between this file and "machinePlayer.py" is the different ways we implemented with on both the Minimax Algorithm part and the Backpropagation part.
 
 ### main_v2.py
 Similar to main.py, this file is the battle field but for machinePlayer_v2 (Version2), so the judge is implemented inside as well.
