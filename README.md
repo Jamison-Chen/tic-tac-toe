@@ -13,7 +13,7 @@ The only 2 differences between this version and the 1.0 one is that:
 1. This version do not look forward at the next (opponent's) step anymore.
 2. We add a term **C**, a hyperparameter, in the method called ***maximize*** when counting score of each child. This term is the weight of **exploring less-visited nodes** given the weight of **the original winning rate** to be 1. However, you can simply see the **C** term as the learning rate as in many other maching-learning algorithms.
 
-### main.py
+### main_v1.py
 You may see this file as the battle field of Tic Tac Toe for machinePlayer *(Version1.0 & Version 1.1 ONLY)*, so the judge is implemented inside.
 Before playing with machine, you may want to train the machine, which will make the machine look more intelligent.
 The training times recommended is around 50,000 to 70,000. That will take 1 to 1.5 minutes approximately to train.
