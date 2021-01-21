@@ -3,14 +3,14 @@ import numpy as np
 import random
 import player
 
-# 可優化點:目前透過minmax的方法只能想到兩步以內的未來
+# 可優化點：目前透過「極小化對手之最高分數」的方法，只設想到兩步以內的未來，
 # 所以很難學會某些「後手必須在第一手就下對才不會輸」的棋局
 
 
 class machinePlayer(player.Player):
 
     def __init__(self):
-        self.__root = node.Node(p=None, n=None, v=0)
+        self.__root = node.Node(p=None, n=None, v=(0, 0))
         self.__temp = self.__root
         self.__size = 1
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),
@@ -71,7 +71,7 @@ class machinePlayer(player.Player):
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),
                              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
-    def minimax(self, childrenList):
+    def minimizeOpponentMax(self, childrenList):
         minMax = []  # minMax: [[max score, 0th node],[max score, 1st node],...]
         for i in range(len(childrenList)):
             # child i has been explored before.
@@ -99,10 +99,10 @@ class machinePlayer(player.Player):
             else:
                 # "getValue()[1]!=0" and "isExternal" mean child i is the last step,
                 # and if child i is a "winning" step, getValue()[0] must > 0, so...
-                if childrenList[i].getValue()[0] > 0 and childrenList[i].getValue()[1] != 0:
+                if childrenList[i].getValue()[0] > 0:
                     return [[-float('inf'), i], False]
                 # or if child i is a "losing" step...
-                elif childrenList[i].getValue()[0] < 0 and childrenList[i].getValue()[1] != 0:
+                elif childrenList[i].getValue()[0] < 0:
                     minMax.append([float('inf'), i])
                 # or if child i is a "drawing" step (must be the 9th step)...
                 elif childrenList[i].getValue()[0] == 0 and childrenList[i].getValue()[1] != 0:
@@ -126,7 +126,7 @@ class machinePlayer(player.Player):
                 0, len(child_list)-1)]    # Rollout Policy
         else:
             child_list = self.__temp.getChildrenList()
-            [minMax, allTheSame] = self.minimax(child_list)
+            [minMax, allTheSame] = self.minimizeOpponentMax(child_list)
             if allTheSame:
                 self.__temp = child_list[random.randint(
                     0, len(child_list)-1)]    # Rollout Policy

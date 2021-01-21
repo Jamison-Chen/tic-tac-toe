@@ -2,20 +2,13 @@ import node
 import numpy as np
 import random
 import player
-
-# This machine player(AI) is implemented with the Minimax Algorithm,
-# which will look through the entire game tree, and explore every
-# single branch, every node, and determine the best choice.
-# Downside:
-# If the game tree is very large, it'll take lots of time and memory to
-# explore the whole tree. Thus, we need to limit it with a Maximum Depth.
-# The smaller the maximum depth is, the more stupid the AI is gonna be.
+import math
 
 
 class machinePlayer(player.Player):
 
     def __init__(self):
-        self.__root = node.Node(p=None, n="ROOT", v=[None, float('inf')])
+        self.__root = node.Node(p=None, n=None, v=(0, 0))
         self.__temp = self.__root
         self.__size = 1
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),
@@ -48,6 +41,10 @@ class machinePlayer(player.Player):
     def size(self):
         return self.__size
 
+    def updateValue(self, n, v):
+        n.setValue((n.getValue()[0]+v[0], n.getValue()[1]+v[1]))
+        return n
+
     def updatePath(self, pos, playerName):
         self.__allChoices.remove(pos)
         self.__path.append((pos, playerName))
@@ -64,7 +61,7 @@ class machinePlayer(player.Player):
                 updated = True
                 break
         if not updated:
-            print("Faild to update.")
+            print("Faild to update!!!")
             quit()
 
     def clearPath(self):
@@ -72,74 +69,72 @@ class machinePlayer(player.Player):
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),
                              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
+    def maximize(self, childrenList, N):
+        C = 0.9
+        maxScore = float('-inf')
+        maxChild = None
+        for each in childrenList:
+            try:
+                score = (each.getValue()[0]/each.getValue()[1]) + \
+                    C*(math.log(N)/each.getValue()[1])**(0.5)
+            except:
+                score = float('inf')
+            if score >= maxScore:
+                maxScore = score
+                maxChild = each
+        return maxChild
+
     def select(self, playerName):
         if self.isExternal(self.__temp):
             self.expand()
-        child_list = self.__temp.getChildrenList()
-        for each in child_list:
-            if each.getName() == self.__temp.getValue()[0]:
-                self.__temp = each
-                # Because we use position as the name of a node at very first, so...
-                position = self.__temp.getName()
-                self.updatePath(position, playerName)
-                return position
-        print("Failed to select.")
-        quit()
+            child_list = self.__temp.getChildrenList()
+            self.__temp = child_list[random.randint(
+                0, len(child_list)-1)]    # Rollout Policy
+            # self.expand()
+            # child_list = self.__temp.getChildrenList()
+            # for each in child_list:
+            #     self.simulate(each)
+            # maxWinRate = 0
+            # bestChoice = None
+            # for each in child_list:
+            #     thisWinRate = each.getValue()[0]/each.getValue()[1]
+            #     if thisWinRate >= maxWinRate:
+            #         maxWinRate = thisWinRate
+            #         bestChoice = each
+            # self.__temp = bestChoice
+        else:
+            child_list = self.__temp.getChildrenList()
+            self.__temp = self.maximize(child_list, self.__temp.getValue()[1])
+        # Because we use position as the name of a node at very first, so...
+        position = self.__temp.getName()
+        self.updatePath(position, playerName)
+        return position
 
     def expand(self):
         random.shuffle(self.__allChoices)
         for each in self.__allChoices:
             # Use position as the name of the node expanded:
-            self.__temp.appendChild(
-                node.Node(p=self.__temp, n=each, v=[None, float('inf')]))
-        self.backPropagate(state=2)
+            self.__temp.appendChild(node.Node(p=self.__temp, n=each, v=(0, 0)))
 
-    def backPropagate(self, state):
-        # states: 2 means that this' for expanding,
-        #         1 means that the first mover won,
-        #         -1 means that the first mover lost,
-        #         0 means that this game went tie.
-        if state == 2:
-            probe = self.__temp.getChildrenList()[0]
-        else:
-            probe = self.__temp
+    # Hint: In this game, the last mover is impossible to be a loser.
+    def backPropagate(self, winLossTie):
+        i = -1
+        lastMover = self.__path[i][1]
+        if winLossTie == 1:  # last mover won
+            while not self.isRoot(self.__temp):
+                if self.__path[i][1] == lastMover:
+                    self.updateValue(n=self.__temp, v=(1, 1))
+                else:
+                    self.updateValue(n=self.__temp, v=(-1, 1))
+                self.__temp = self.__temp.getParent()
+                i -= 1
+        else:  # last mover made it tie
+            while not self.isRoot(self.__temp):
+                self.updateValue(n=self.__temp, v=(0, 1))
+                self.__temp = self.__temp.getParent()
+                i -= 1
 
-        depth = 0
-        while not self.isRoot(probe):
-            probe = probe.getParent()
-            probe.setValue(None)
-            depth += 1
-        if state == 1:
-            self.__temp.setValue([None, 100/depth])
-        elif state == -1:
-            self.__temp.setValue([None, -100/depth])
-        elif state == 0:
-            self.__temp.setValue([None, 0])
-
-        self.minimax(probe, True)
-        if state != 2:
-            self.__temp = probe
-
-    def hasNoneValue(self, aListOfNodes):
-        hasNone = False
-        items = []
-        for i in range(len(aListOfNodes)):
-            if aListOfNodes[i].getValue() == None:
-                hasNone = True
-                items.append(i)
-        return [hasNone, items]
-
-    def minimax(self, aTree, isMaximizer):
-        needRecursive = self.hasNoneValue(aTree.getChildrenList())
-        if needRecursive[0]:
-            for i in needRecursive[1]:
-                self.minimax(aTree.getChildrenList()[i], not isMaximizer)
-        children = aTree.getChildrenList()
-        cInfo = [[each.getName(), each.getValue()[1]] for each in children]
-        v = sorted(cInfo, key=lambda x: x[1], reverse=isMaximizer)[0]
-        aTree.setValue(v)
-
-    def postOrderPrintTree(self, n=""):
+    def postOrderPrintTree2(self, n=""):
         if n == "":
             n = self.__root
         if n.getChildrenList() != []:
@@ -171,4 +166,4 @@ class machinePlayer(player.Player):
                       str(n.getParent().getName())+"\t" +
                       "No")
         for each in n.getChildrenList():
-            self.postOrderPrintTree(each)
+            self.postOrderPrintTree2(each)

@@ -1,13 +1,13 @@
 import machinePlayer_v2 as mp2
 import randomPlayer as rp
-import main
+import main_v1
 import numpy as np
 import random
 import time
 import os
 
 
-class ticTacToe2(main.ticTacToe):
+class ticTacToe2(main_v1.ticTacToe):
     def __init__(self):
         self.board = np.full((3, 3), " ")
         self.gameRunning = True
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     game.trainMachine(100000, batch=10000, train_type="random")
     while (game.p2Win/game.totalGames*100) > 0:
         game.trainMachine(5000, batch=5000, train_type="random")
-    game.play(10, p1="", p2="human")
+    game.play(1, p1="", p2="human")
     # game.player.postOrderPrintTree(game.player.root())

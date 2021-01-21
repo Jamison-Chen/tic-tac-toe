@@ -1,6 +1,5 @@
-import machinePlayer as mp
+import machinePlayer_v1_1 as mp
 import randomPlayer as rp
-# import mp2 as mp
 import numpy as np
 import random
 import time
@@ -175,6 +174,7 @@ class ticTacToe():
             self.p2Start += 1
 
     def play(self, trainTimes, p1="", p2=""):
+        self.trainStatisticsRefresh()
         self.newGame(p1=p1, p2=p2)
         while self.gameRunning:
             if self.mover == 1:
@@ -213,11 +213,9 @@ class ticTacToe():
         epoch = trainTimes//batch
         mod = trainTimes % batch
         for i in range(epoch):
-            self.trainStatisticsRefresh()
             self.play(trainTimes=batch, p1="", p2=train_type)
             self.printTrainResult()
         if mod != 0:
-            self.trainStatisticsRefresh()
             self.play(trainTimes=mod, p1="", p2=train_type)
             self.printTrainResult()
 
@@ -225,7 +223,6 @@ class ticTacToe():
 if __name__ == "__main__":
     os.system('cls')
     game = ticTacToe()
-    # game.trainMachine(600, batch=200)
-    game.trainMachine(100000, batch=10000, train_type="random")
+    game.trainMachine(60000, batch=10000, train_type="random")
     game.play(1, p1="", p2="human")
     # game.player.postOrderPrintTree(player.root())
