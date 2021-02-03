@@ -30,7 +30,7 @@ However, you'll also notice that this approach takes more time to converge to a 
 
 ### randomPlayer.py
 This file, as the name goes, imitates like a player that always randomlly chooses which place to put the piece.
-You'll see the randomPlayer being instanciated in both main.py and main_v2.py.
+You'll see the randomPlayer being instanciated in both main_v1.py and main_v2.py.
 
 ### node.py & player.py
 These two files are the bases of machinePlayer.py and randomPlayer.py, providing lots of essential methods.
