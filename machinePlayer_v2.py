@@ -16,6 +16,7 @@ class machinePlayer(player.Player):
 
     def __init__(self):
         self.__root = node.Node(p=None, n="ROOT", v=[None, float('inf')])
+        # v=[A node's name, It's score]
         self.__temp = self.__root
         self.__size = 1
         self.__allChoices = [(0, 0), (0, 1), (0, 2), (1, 0),

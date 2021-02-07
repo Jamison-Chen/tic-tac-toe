@@ -13,10 +13,12 @@ const winningCombinations = [
     [0, 4, 8],
     [2, 4, 6]
 ];
+
+startGame("O");
 document.getElementById("restart-btn").addEventListener("click", e => {
     startGame("O");
 });
-startGame("O");
+
 
 function startGame(firstPlayer = "") {
     xTurn = (firstPlayer == "X");
@@ -27,7 +29,9 @@ function startGame(firstPlayer = "") {
         each.classList.remove("O");
         each.classList.remove("X");
         each.removeEventListener("click", handleClick);
-        each.addEventListener("click", handleClick, { once: true });
+        each.addEventListener("click", handleClick, {
+            once: true
+        });
     });
     winningMessageDiv.className = "";
 }
