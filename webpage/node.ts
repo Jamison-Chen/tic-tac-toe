@@ -1,9 +1,9 @@
 export class Node {
     private _parent: null | Node;
     private _name: "ROOT" | [number, number];
-    private _value: [null | [number, number], number];
+    private _value: ["ROOT" | null | [number, number], null | number];
     private _childrenList: Node[];
-    constructor(p: null | Node, n: "ROOT" | [number, number], v: [null | [number, number], number]) {
+    public constructor(p: null | Node, n: "ROOT" | [number, number], v: [null | [number, number], number]) {
         this._parent = p;
         this._name = n;
         this._value = v;
@@ -26,8 +26,8 @@ export class Node {
         return this._childrenList;
     }
 
-    childrenListString(): String {
-        let s: String = "";
+    public childrenListString(): string {
+        let s: string = "";
         this._childrenList.forEach(each => {
             s += each.name.toString();
             s += ", ";
@@ -43,11 +43,11 @@ export class Node {
         this._name = n;
     }
 
-    set value(v: [null | [number, number], number]) {
+    set value(v: ["ROOT" | null | [number, number], null | number]) {
         this._value = v;
     }
 
-    appendChild(c: Node): void {
+    public appendChild(c: Node): void {
         this._childrenList.push(c);
     }
 }
