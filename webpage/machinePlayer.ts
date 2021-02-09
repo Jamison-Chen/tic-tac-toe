@@ -14,17 +14,19 @@ export class MachinePlayer implements Player {
     public root(): Node {
         return this._root;
     }
-    // public isRoot(n: Node): Boolean {
+    // public isRoot(n: Node): boolean {
     //     return n.parent == null;
     // }
-    public isExternal(n: Node): Boolean {
-        return n.childrenList == [];
+    public isExternal(n: Node): boolean {
+        return n.childrenList.length == 0;
     }
-    public isInternal(n: Node): Boolean {
-        return !(n.childrenList == []);
+    public isInternal(n: Node): boolean {
+        return !(n.childrenList.length == 0);
     }
     public updatePath(pos: [number, number] | "ROOT", playerName: string): void {
-        this._allChoices.filter(each => { each != pos });
+        this._allChoices = this._allChoices.filter(each => {
+            return (each[0] != pos[0] || each[1] != pos[1])
+        });
         this._path.push([pos, playerName]);
     }
     public moveWithOpponent(opponentName: string, opponentMovePos: [number, number]): void {
@@ -32,13 +34,13 @@ export class MachinePlayer implements Player {
             this.expand();
         }
         let tempChildrenList: Node[] = this._temp.childrenList;
-        tempChildrenList.some(each => {
-            if (each.name == opponentMovePos) {
-                this._temp = each;
+        for (let i = 0; i < tempChildrenList.length; i++) {
+            if (tempChildrenList[i].name[0] == opponentMovePos[0] && tempChildrenList[i].name[1] == opponentMovePos[1]) {
+                this._temp = tempChildrenList[i];
                 this.updatePath(opponentMovePos, opponentName);
-                return true;
+                break;
             }
-        });
+        }
     }
     public clearPath(): void {
         this._path = [];
@@ -50,14 +52,14 @@ export class MachinePlayer implements Player {
         }
         let tempChildrenList: Node[] = this._temp.childrenList;
         let pos: [number, number] | "ROOT" | null = null;
-        tempChildrenList.find(each => {
-            if (each.name == this._temp.value[0]) {
-                this._temp = each;
+        for (let i = 0; i < tempChildrenList.length; i++) {
+            if (tempChildrenList[i].name == this._temp.value[0]) {
+                this._temp = tempChildrenList[i];
                 pos = this._temp.name;
                 this.updatePath(pos, playerName);
-                return true;
+                break;
             }
-        });
+        }
         return pos;
     }
     private shuffle(array: any[]): void {
@@ -102,19 +104,19 @@ export class MachinePlayer implements Player {
             this._temp = probe;
         }
     }
-    public hasNullValue(aListOfNodes: Node[]): [Boolean, number[]] {
-        let hasNull: Boolean = false;
+    public hasNullValue(aListOfNodes: Node[]): [boolean, number[]] {
+        let hasNull: boolean = false;
         let items: number[] = [];
         for (let i: number = 0; i < aListOfNodes.length; i++) {
-            if (aListOfNodes[i].value == [null, null]) {
+            if (aListOfNodes[i].value[0] == null && aListOfNodes[i].value[1] == null) {
                 hasNull = true;
                 items.push(i);
             }
         }
         return [hasNull, items];
     }
-    public minimax(aTree: Node, isMaximizer: Boolean): void {
-        let needRecursion: [Boolean, number[]] = this.hasNullValue(aTree.childrenList);
+    public minimax(aTree: Node, isMaximizer: boolean): void {
+        let needRecursion: [boolean, number[]] = this.hasNullValue(aTree.childrenList);
         if (needRecursion[0]) {
             needRecursion[1].forEach(each => {
                 this.minimax(aTree.childrenList[each], !isMaximizer);

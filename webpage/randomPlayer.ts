@@ -9,8 +9,8 @@ export class RandomPlayer {
         this._availableChoices = this._allChoices;
     }
     public updateChoices(pos: [number, number]): void {
-        this._availableChoices.filter(each => {
-            each != pos;
+        this._availableChoices = this._availableChoices.filter(each => {
+            return (each[0] != pos[0] || each[1] != pos[1]);
         });
     }
     public select(): [number, number] {

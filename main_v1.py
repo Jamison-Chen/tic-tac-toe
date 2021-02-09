@@ -48,8 +48,8 @@ class ticTacToe():
                 valid = False
         return (int(inpNp[0]), int(inpNp[1]))
 
-    def playerMakeMove(self, playerNumber, role="", opponent=""):
-        if playerNumber == "player1":
+    def playerMakeMove(self, role="", opponent=""):
+        if self.mover == 1:
             playMark = "O"
             playerName = 1
         else:
@@ -59,7 +59,7 @@ class ticTacToe():
         if role == "":
             pos = self.player.select(playerName=playerName)
         elif role == "random":
-            if playerNumber == "player1":
+            if self.mover == 1:
                 pos = self.rdPlayer.select()
             else:
                 pos = self.rdPlayer2.select()
@@ -72,7 +72,7 @@ class ticTacToe():
             print(self.board)
 
         if opponent == "random":
-            if playerNumber == "player1":
+            if self.mover == 1:
                 self.rdPlayer2.updateChoices(pos)
             else:
                 self.rdPlayer.updateChoices(pos)
@@ -84,7 +84,7 @@ class ticTacToe():
             if role == "":
                 pass
             else:
-                if playerNumber == "player1":
+                if self.mover == 1:
                     pass
                 else:
                     self.player.moveWithOpponent(playerName, pos)
@@ -178,8 +178,7 @@ class ticTacToe():
         self.newGame(p1=p1, p2=p2)
         while self.gameRunning:
             if self.mover == 1:
-                self.playerMakeMove(playerNumber="player1",
-                                    role=p1, opponent=p2)
+                self.playerMakeMove(role=p1, opponent=p2)
                 self.judge(self.mover, p1=p1, p2=p2)
                 if self.totalGames == trainTimes:
                     break
@@ -187,7 +186,7 @@ class ticTacToe():
                     self.newGame(p1, p2)
                     if self.mover == 1:
                         continue
-            self.playerMakeMove(playerNumber="player2", role=p2, opponent=p1)
+            self.playerMakeMove(role=p2, opponent=p1)
             self.judge(self.mover, p1=p1, p2=p2)
             if self.totalGames == trainTimes:
                 break

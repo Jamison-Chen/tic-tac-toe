@@ -9,17 +9,19 @@ export class MachinePlayer {
     root() {
         return this._root;
     }
-    // public isRoot(n: Node): Boolean {
+    // public isRoot(n: Node): boolean {
     //     return n.parent == null;
     // }
     isExternal(n) {
-        return n.childrenList == [];
+        return n.childrenList.length == 0;
     }
     isInternal(n) {
-        return !(n.childrenList == []);
+        return !(n.childrenList.length == 0);
     }
     updatePath(pos, playerName) {
-        this._allChoices.filter(each => { each != pos; });
+        this._allChoices = this._allChoices.filter(each => {
+            return (each[0] != pos[0] || each[1] != pos[1]);
+        });
         this._path.push([pos, playerName]);
     }
     moveWithOpponent(opponentName, opponentMovePos) {
@@ -27,13 +29,13 @@ export class MachinePlayer {
             this.expand();
         }
         let tempChildrenList = this._temp.childrenList;
-        tempChildrenList.some(each => {
-            if (each.name == opponentMovePos) {
-                this._temp = each;
+        for (let i = 0; i < tempChildrenList.length; i++) {
+            if (tempChildrenList[i].name[0] == opponentMovePos[0] && tempChildrenList[i].name[1] == opponentMovePos[1]) {
+                this._temp = tempChildrenList[i];
                 this.updatePath(opponentMovePos, opponentName);
-                return true;
+                break;
             }
-        });
+        }
     }
     clearPath() {
         this._path = [];
@@ -45,14 +47,14 @@ export class MachinePlayer {
         }
         let tempChildrenList = this._temp.childrenList;
         let pos = null;
-        tempChildrenList.find(each => {
-            if (each.name == this._temp.value[0]) {
-                this._temp = each;
+        for (let i = 0; i < tempChildrenList.length; i++) {
+            if (tempChildrenList[i].name == this._temp.value[0]) {
+                this._temp = tempChildrenList[i];
                 pos = this._temp.name;
                 this.updatePath(pos, playerName);
-                return true;
+                break;
             }
-        });
+        }
         return pos;
     }
     shuffle(array) {
@@ -104,7 +106,7 @@ export class MachinePlayer {
         let hasNull = false;
         let items = [];
         for (let i = 0; i < aListOfNodes.length; i++) {
-            if (aListOfNodes[i].value == [null, null]) {
+            if (aListOfNodes[i].value[0] == null && aListOfNodes[i].value[1] == null) {
                 hasNull = true;
                 items.push(i);
             }

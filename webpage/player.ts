@@ -1,9 +1,9 @@
 import { Node } from './node.js';
 export interface Player {
     root(): Node;
-    // isRoot(n: Node): Boolean;
-    isExternal(n: Node): Boolean;
-    isInternal(n: Node): Boolean;
+    // isRoot(n: Node): boolean;
+    isExternal(n: Node): boolean;
+    isInternal(n: Node): boolean;
     clearPath(): void;
     updatePath(pos: [number, number] | "ROOT", playerName: string): void;
     select(playerName: string): [number, number] | "ROOT" | null;
