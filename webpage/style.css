@@ -19,13 +19,17 @@ body {
 
 #main-board {
     width: 100vw;
-    height: 100vh;
-    display: grid;
+    height: 80vh;
+    display: none;
     justify-content: center;
     align-content: center;
     justify-items: center;
     align-items: center;
     grid-template-columns: repeat(3, auto);
+}
+
+#main-board.show {
+    display: grid;
 }
 
 .cell {
@@ -116,6 +120,85 @@ body {
     width: calc(var(--mark-size)*.6);
     height: calc(var(--mark-size)*.6);
     background-color: var(--background-color);
+}
+
+#control-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+    height: 20vh;
+    /* background-color: #e6e6e6; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.control-btn {
+    width: 10%;
+    height: 40px;
+    margin: 0 3%;
+    border-radius: 5px;
+    border: 0;
+    color: #fff;
+    cursor: pointer;
+}
+
+.control-btn:focus {
+    outline: none;
+}
+
+#multiplayer-btn {
+    background-color: #1aa1bf;
+}
+
+#multiplayer-btn:hover {
+    background-color: #159cba;
+}
+
+#multiplayer-btn:active {
+    background-color: #1097b5;
+}
+
+#naive-machine-btn {
+    background-color: #f1aa43;
+}
+
+#naive-machine-btn:hover {
+    background-color: #eca53e;
+}
+
+#naive-machine-btn:active {
+    background-color: #e7a039;
+}
+
+#trained-machine-btn {
+    background-color: #c40c05;
+}
+
+#trained-machine-btn:hover {
+    background-color: #bf0700;
+}
+
+#trained-machine-btn:active {
+    background-color: #b70000;
+    cursor: progress;
+}
+
+#reload-btn {
+    background-color: #000;
+}
+
+#reload-btn:hover {
+    background-color: #333;
+}
+
+#reload-btn:active {
+    background-color: #444;
+}
+
+.control-btn:disabled {
+    background-color: #ccc !important;
+    cursor: default;
 }
 
 #winning-message {

@@ -30,6 +30,7 @@ export class MachinePlayer implements Player {
         this._path.push([pos, playerName]);
     }
     public moveWithOpponent(opponentName: string, opponentMovePos: [number, number]): void {
+        // console.log(opponentMovePos);
         if (this.isExternal(this._temp)) {
             this.expand();
         }
