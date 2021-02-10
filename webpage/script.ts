@@ -1,6 +1,7 @@
 import { TicTacToe } from './trainField.js';
 
 const game: TicTacToe = new TicTacToe();
+const controlBar: HTMLElement | null = document.getElementById("control-bar");
 const restartBtn: HTMLElement | null = document.getElementById("restart-btn");
 const reloadBtn: HTMLElement | null = document.getElementById("reload-btn");
 const multiplayerBtn: HTMLElement | null = document.getElementById("multiplayer-btn");
@@ -47,6 +48,7 @@ function disableBtns(): void {
         multiplayerBtn.disabled = true;
         naiveMachineBtn.disabled = true;
         trainedMachineBtn.disabled = true;
+        controlBar?.style.bottom = "0";
     }
 }
 
