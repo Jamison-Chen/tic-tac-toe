@@ -1,7 +1,7 @@
 # Game_TicTacToe
 This project is a game implemented with Reinforcement Learning and Minimax Algorithm.
 
-## File Descriptions
+## Descriptions of files in prtotypeInPython
 ### machinePlayer_v1_0.py
 This file contains the core machine learning logic *(Version1.0)*.
 The key strategy used is the Monte-Carlo Tree Search Algorithm (MCTS).
@@ -34,6 +34,3 @@ You'll see the randomPlayer being instanciated in both main_v1.py and main_v2.py
 
 ### node.py & player.py
 These two files are the bases of machinePlayer.py and randomPlayer.py, providing lots of essential methods.
-
-## Files Not Used
-* test.ipynb
