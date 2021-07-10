@@ -11,6 +11,7 @@ const board = document.getElementById("main-board");
 const winningMessageDiv = document.getElementById("winning-message");
 const winningMessageText = document.querySelector("[data-winning-message-text]");
 let xTurn;
+let mode;
 const winningCombinations = [
     [0, 1, 2],
     [3, 4, 5],
@@ -21,24 +22,11 @@ const winningCombinations = [
     [0, 4, 8],
     [2, 4, 6]
 ];
-let mode;
 multiplayerBtn === null || multiplayerBtn === void 0 ? void 0 : multiplayerBtn.addEventListener("click", multiplayerMode);
-naiveMachineBtn === null || naiveMachineBtn === void 0 ? void 0 : naiveMachineBtn.addEventListener("click", e => { singlePlayerMode(e, false); });
-trainedMachineBtn === null || trainedMachineBtn === void 0 ? void 0 : trainedMachineBtn.addEventListener("click", e => { singlePlayerMode(e, true); });
-reloadBtn === null || reloadBtn === void 0 ? void 0 : reloadBtn.addEventListener("click", e => { location.reload(); });
-restartBtn === null || restartBtn === void 0 ? void 0 : restartBtn.addEventListener("click", e => { location.reload(); });
-// function refreshView(): void {
-//     if (multiplayerBtn != null && naiveMachineBtn != null && trainedMachineBtn != null && winningMessageDiv != null) {
-//         if (mode == "trained") {
-//             multiplayerBtn.disabled = false;
-//         } else {
-//             multiplayerBtn.disabled = false;
-//             naiveMachineBtn.disabled = false;
-//             trainedMachineBtn.disabled = false;
-//         }
-//         winningMessageDiv.className = "";
-//     }
-// }
+naiveMachineBtn === null || naiveMachineBtn === void 0 ? void 0 : naiveMachineBtn.addEventListener("click", (e) => { singlePlayerMode(e, false); });
+trainedMachineBtn === null || trainedMachineBtn === void 0 ? void 0 : trainedMachineBtn.addEventListener("click", (e) => { singlePlayerMode(e, true); });
+reloadBtn === null || reloadBtn === void 0 ? void 0 : reloadBtn.addEventListener("click", (e) => { location.reload(); });
+restartBtn === null || restartBtn === void 0 ? void 0 : restartBtn.addEventListener("click", (e) => { location.reload(); });
 function disableBtns() {
     if (trainedMachineBtn instanceof HTMLButtonElement && multiplayerBtn instanceof HTMLButtonElement && naiveMachineBtn instanceof HTMLButtonElement && board != null && controlBar instanceof HTMLElement) {
         multiplayerBtn.disabled = true;
@@ -49,17 +37,15 @@ function disableBtns() {
 }
 function singlePlayerMode(e, shouldTrain) {
     disableBtns();
-    setTimeout(function () {
+    setTimeout(() => {
         board === null || board === void 0 ? void 0 : board.classList.add("show");
         mode = "single";
-        if (shouldTrain) {
+        if (shouldTrain)
             game.trainMachine(100000, 10000, "random");
-        }
         game.play(1, "", "human");
         startGame(game.mover == 1 ? "O" : "X");
-        if (game.mover == 1) {
+        if (game.mover == 1)
             machineMakeMove();
-        }
     });
 }
 function machineMakeMove() {
@@ -73,8 +59,7 @@ function machineMakeMove() {
     }
     game.judge();
     // Human's turn
-    board === null || board === void 0 ? void 0 : board.classList.remove("O");
-    board === null || board === void 0 ? void 0 : board.classList.add("X");
+    board === null || board === void 0 ? void 0 : board.classList.replace("O", "X");
 }
 function multiplayerMode() {
     disableBtns();
@@ -110,35 +95,29 @@ function startGame(firstPlayer) {
     }
 }
 function handleClickSingle(e) {
-    if (e.target instanceof HTMLElement) {
-        placeMark(e.target, "X");
-        let pos = [parseInt(e.target.id.split(",")[0]), parseInt(e.target.id.split(",")[1])];
-        if (pos instanceof Array) {
-            game.virtualBoard[pos[1]][pos[0]] = "X";
-        }
+    if (e.currentTarget instanceof HTMLElement) {
+        placeMark(e.currentTarget, "X");
+        let pos = [parseInt(e.currentTarget.id.split(",")[0]),
+            parseInt(e.currentTarget.id.split(",")[1])];
+        game.virtualBoard[pos[1]][pos[0]] = "X";
         game.player.moveWithOpponent("2", pos);
         game.judge();
         // Machine's turn
-        board === null || board === void 0 ? void 0 : board.classList.remove("X");
-        board === null || board === void 0 ? void 0 : board.classList.add("O");
-        if (game.gameRunning) {
+        board === null || board === void 0 ? void 0 : board.classList.replace("X", "O");
+        if (game.gameRunning)
             machineMakeMove();
-        }
     }
 }
 function handleClickMulti(e) {
-    if (e.target instanceof HTMLElement) {
+    if (e.currentTarget instanceof HTMLElement) {
         const currentPlayer = xTurn ? "X" : "O";
-        placeMark(e.target, currentPlayer);
-        if (hasWinner(currentPlayer)) {
+        placeMark(e.currentTarget, currentPlayer);
+        if (hasWinner(currentPlayer))
             multiplayerEndGame(false);
-        }
-        else if (isDraw()) {
+        else if (isDraw())
             multiplayerEndGame(true);
-        }
-        else {
+        else
             swapTurn(currentPlayer);
-        }
     }
 }
 function placeMark(cell, currentPlayer) {
@@ -153,31 +132,22 @@ function hasWinner(currentPlayer) {
 }
 function isDraw() {
     return [...cellDivs].every(each => {
-        return each.classList.contains("X") ||
-            each.classList.contains("O");
+        return each.classList.contains("X") || each.classList.contains("O");
     });
 }
 function multiplayerEndGame(isDraw) {
     if (winningMessageText != null && winningMessageDiv != null) {
-        if (isDraw) {
+        if (isDraw)
             winningMessageText.innerHTML = "Draw!";
-        }
-        else {
+        else
             winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
-        }
         winningMessageDiv.className = "show";
     }
 }
 function swapTurn(currentPlayer) {
-    if (board != null) {
-        if (currentPlayer == "O") {
-            board.classList.remove("O");
-            board.classList.add("X");
-        }
-        else {
-            board.classList.remove("X");
-            board.classList.add("O");
-        }
-        xTurn = !xTurn;
-    }
+    if (currentPlayer == "O")
+        board === null || board === void 0 ? void 0 : board.classList.replace("O", "X");
+    else
+        board === null || board === void 0 ? void 0 : board.classList.replace("X", "O");
+    xTurn = !xTurn;
 }

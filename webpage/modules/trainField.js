@@ -180,13 +180,13 @@ export class TicTacToe {
     }
     trainMachine(trainTimes, batch, trainType) {
         let epoch = Math.floor(trainTimes / batch);
-        let mod = trainTimes % batch;
+        let remainder = trainTimes % batch;
         for (let i = 0; i < epoch; i++) {
             this.play(batch, "", trainType);
             this.printTrainResult();
         }
-        if (mod != 0) {
-            this.play(mod, "", trainType);
+        if (remainder != 0) {
+            this.play(remainder, "", trainType);
             this.printTrainResult();
         }
     }

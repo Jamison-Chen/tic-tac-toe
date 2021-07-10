@@ -1,6 +1,7 @@
 import { TicTacToe } from './trainField.js';
 
 const game: TicTacToe = new TicTacToe();
+
 const controlBar: HTMLElement | null = document.getElementById("control-bar");
 const restartBtn: HTMLElement | null = document.getElementById("restart-btn");
 const reloadBtn: HTMLElement | null = document.getElementById("reload-btn");
@@ -11,7 +12,10 @@ const cellDivs = document.querySelectorAll("[data-cell]");
 const board: HTMLElement | null = document.getElementById("main-board");
 const winningMessageDiv: HTMLElement | null = document.getElementById("winning-message");
 const winningMessageText: HTMLElement | null = document.querySelector("[data-winning-message-text]");
+
 let xTurn: boolean;
+let mode: string;
+
 const winningCombinations: number[][] = [
     [0, 1, 2],
     [3, 4, 5],
@@ -22,26 +26,12 @@ const winningCombinations: number[][] = [
     [0, 4, 8],
     [2, 4, 6]
 ];
-let mode: string;
 
 multiplayerBtn?.addEventListener("click", multiplayerMode)
-naiveMachineBtn?.addEventListener("click", e => { singlePlayerMode(e, false) });
-trainedMachineBtn?.addEventListener("click", e => { singlePlayerMode(e, true) });
-reloadBtn?.addEventListener("click", e => { location.reload() });
-restartBtn?.addEventListener("click", e => { location.reload() });
-
-// function refreshView(): void {
-//     if (multiplayerBtn != null && naiveMachineBtn != null && trainedMachineBtn != null && winningMessageDiv != null) {
-//         if (mode == "trained") {
-//             multiplayerBtn.disabled = false;
-//         } else {
-//             multiplayerBtn.disabled = false;
-//             naiveMachineBtn.disabled = false;
-//             trainedMachineBtn.disabled = false;
-//         }
-//         winningMessageDiv.className = "";
-//     }
-// }
+naiveMachineBtn?.addEventListener("click", (e) => { singlePlayerMode(e, false) });
+trainedMachineBtn?.addEventListener("click", (e) => { singlePlayerMode(e, true) });
+reloadBtn?.addEventListener("click", (e) => { location.reload() });
+restartBtn?.addEventListener("click", (e) => { location.reload() });
 
 function disableBtns(): void {
     if (trainedMachineBtn instanceof HTMLButtonElement && multiplayerBtn instanceof HTMLButtonElement && naiveMachineBtn instanceof HTMLButtonElement && board != null && controlBar instanceof HTMLElement) {
@@ -54,17 +44,13 @@ function disableBtns(): void {
 
 function singlePlayerMode(e: Event, shouldTrain: boolean): void {
     disableBtns();
-    setTimeout(function () {
+    setTimeout(() => {
         board?.classList.add("show");
         mode = "single";
-        if (shouldTrain) {
-            game.trainMachine(100000, 10000, "random");
-        }
+        if (shouldTrain) game.trainMachine(100000, 10000, "random");
         game.play(1, "", "human");
         startGame(game.mover == 1 ? "O" : "X");
-        if (game.mover == 1) {
-            machineMakeMove();
-        }
+        if (game.mover == 1) machineMakeMove();
     });
 }
 
@@ -79,8 +65,7 @@ function machineMakeMove(): void {
     }
     game.judge();
     // Human's turn
-    board?.classList.remove("O");
-    board?.classList.add("X");
+    board?.classList.replace("O", "X");
 }
 
 function multiplayerMode(): void {
@@ -118,34 +103,27 @@ function startGame(firstPlayer: string): void {
 }
 
 function handleClickSingle(e: Event): void {
-    if (e.target instanceof HTMLElement) {
-        placeMark(e.target, "X");
-        let pos: [number, number] = [parseInt(e.target.id.split(",")[0]), parseInt(e.target.id.split(",")[1])];
-        if (pos instanceof Array) {
-            game.virtualBoard[pos[1]][pos[0]] = "X";
-        }
+    if (e.currentTarget instanceof HTMLElement) {
+        placeMark(e.currentTarget, "X");
+        let pos: [number, number] =
+            [parseInt(e.currentTarget.id.split(",")[0]),
+            parseInt(e.currentTarget.id.split(",")[1])];
+        game.virtualBoard[pos[1]][pos[0]] = "X";
         game.player.moveWithOpponent("2", pos);
         game.judge();
         // Machine's turn
-        board?.classList.remove("X");
-        board?.classList.add("O");
-        if (game.gameRunning) {
-            machineMakeMove();
-        }
+        board?.classList.replace("X", "O");
+        if (game.gameRunning) machineMakeMove();
     }
 }
 
 function handleClickMulti(e: Event): void {
-    if (e.target instanceof HTMLElement) {
+    if (e.currentTarget instanceof HTMLElement) {
         const currentPlayer = xTurn ? "X" : "O";
-        placeMark(e.target, currentPlayer);
-        if (hasWinner(currentPlayer)) {
-            multiplayerEndGame(false);
-        } else if (isDraw()) {
-            multiplayerEndGame(true);
-        } else {
-            swapTurn(currentPlayer);
-        }
+        placeMark(e.currentTarget, currentPlayer);
+        if (hasWinner(currentPlayer)) multiplayerEndGame(false);
+        else if (isDraw()) multiplayerEndGame(true);
+        else swapTurn(currentPlayer);
     }
 }
 
@@ -163,31 +141,20 @@ function hasWinner(currentPlayer: string): boolean {
 
 function isDraw(): boolean {
     return [...cellDivs].every(each => {
-        return each.classList.contains("X") ||
-            each.classList.contains("O");
+        return each.classList.contains("X") || each.classList.contains("O");
     });
 }
 
 function multiplayerEndGame(isDraw: boolean): void {
     if (winningMessageText != null && winningMessageDiv != null) {
-        if (isDraw) {
-            winningMessageText.innerHTML = "Draw!";
-        } else {
-            winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
-        }
+        if (isDraw) winningMessageText.innerHTML = "Draw!";
+        else winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
         winningMessageDiv.className = "show";
     }
 }
 
 function swapTurn(currentPlayer: string): void {
-    if (board != null) {
-        if (currentPlayer == "O") {
-            board.classList.remove("O");
-            board.classList.add("X");
-        } else {
-            board.classList.remove("X");
-            board.classList.add("O");
-        }
-        xTurn = !xTurn;
-    }
+    if (currentPlayer == "O") board?.classList.replace("O", "X");
+    else board?.classList.replace("X", "O");
+    xTurn = !xTurn;
 }
