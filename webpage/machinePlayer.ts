@@ -11,17 +11,8 @@ export class MachinePlayer implements Player {
         this._allChoices = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]];
         this._path = [];
     }
-    public root(): Node {
-        return this._root;
-    }
-    // public isRoot(n: Node): boolean {
-    //     return n.parent == null;
-    // }
     public isExternal(n: Node): boolean {
         return n.childrenList.length == 0;
-    }
-    public isInternal(n: Node): boolean {
-        return !(n.childrenList.length == 0);
     }
     public updatePath(pos: [number, number] | "ROOT", playerName: string): void {
         this._allChoices = this._allChoices.filter(each => {
@@ -30,10 +21,7 @@ export class MachinePlayer implements Player {
         this._path.push([pos, playerName]);
     }
     public moveWithOpponent(opponentName: string, opponentMovePos: [number, number]): void {
-        // console.log(opponentMovePos);
-        if (this.isExternal(this._temp)) {
-            this.expand();
-        }
+        if (this.isExternal(this._temp)) this.expand();
         let tempChildrenList: Node[] = this._temp.childrenList;
         for (let i = 0; i < tempChildrenList.length; i++) {
             if (tempChildrenList[i].name[0] == opponentMovePos[0] && tempChildrenList[i].name[1] == opponentMovePos[1]) {
@@ -48,9 +36,7 @@ export class MachinePlayer implements Player {
         this._allChoices = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]];
     }
     public select(playerName: string): [number, number] | "ROOT" | null {
-        if (this.isExternal(this._temp)) {
-            this.expand();
-        }
+        if (this.isExternal(this._temp)) this.expand();
         let tempChildrenList: Node[] = this._temp.childrenList;
         let pos: [number, number] | "ROOT" | null = null;
         for (let i = 0; i < tempChildrenList.length; i++) {
@@ -82,28 +68,18 @@ export class MachinePlayer implements Player {
         //         "-1" means that the first mover lost,
         //         "0" means that this game went tie.
         let probe: Node;
-        if (state == "2") {
-            probe = this._temp.childrenList[0];
-        } else {
-            probe = this._temp;
-        }
+        probe = state == "2" ? this._temp.childrenList[0] : this._temp;
         let depth: number = 0;
         while (probe.parent != null) {
             probe = probe.parent;
             probe.value = [null, null];
             depth++;
         }
-        if (state == "1") {
-            this._temp.value = [null, 100 / depth];
-        } else if (state == "-1") {
-            this._temp.value = [null, -100 / depth];
-        } else if (state == "0") {
-            this._temp.value = [null, 0];
-        }
+        if (state == "1") this._temp.value = [null, 100 / depth];
+        else if (state == "-1") this._temp.value = [null, -100 / depth];
+        else if (state == "0") this._temp.value = [null, 0];
         this.minimax(probe, true);
-        if (state != "2") {
-            this._temp = probe;
-        }
+        if (state != "2") this._temp = probe;
     }
     public hasNullValue(aListOfNodes: Node[]): [boolean, number[]] {
         let hasNull: boolean = false;
@@ -128,25 +104,15 @@ export class MachinePlayer implements Player {
             cInfo.push([each.name, each.value[1]]);
         });
         function ascendingSort(a: ["ROOT" | [number, number], any], b: ["ROOT" | [number, number], any]): number {
-            if (a[1] == b[1]) {
-                return 0;
-            } else {
-                return (a[1] < b[1]) ? -1 : 1;
-            }
+            if (a[1] == b[1]) return 0;
+            else return a[1] < b[1] ? -1 : 1;
         }
         function descendingSort(a: ["ROOT" | [number, number], any], b: ["ROOT" | [number, number], any]): number {
-            if (a[1] == b[1]) {
-                return 0;
-            } else {
-                return (a[1] < b[1]) ? 1 : -1;
-            }
+            if (a[1] == b[1]) return 0;
+            else return (a[1] < b[1]) ? 1 : -1;
         }
         let v: ["ROOT" | [number, number], null | number];
-        if (isMaximizer) {
-            v = cInfo.sort(descendingSort)[0];
-        } else {
-            v = cInfo.sort(ascendingSort)[0];
-        }
+        v = isMaximizer ? cInfo.sort(descendingSort)[0] : cInfo.sort(ascendingSort)[0];
         aTree.value = v;
     }
 }

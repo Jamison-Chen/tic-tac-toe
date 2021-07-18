@@ -6,10 +6,7 @@ export class TicTacToe {
         this.winningMessageText = document.querySelector("[data-winning-message-text]");
         this.p1 = "";
         this.p2 = "";
-        this.virtualBoard =
-            [[" ", " ", " "],
-                [" ", " ", " "],
-                [" ", " ", " "]];
+        this.virtualBoard = this.genVirtualBoard();
         this.gameRunning = true;
         this.mover = 0;
         this.p1Start = 0;
@@ -27,26 +24,18 @@ export class TicTacToe {
         let playMark = this.mover == 1 ? "O" : "X";
         let playerName = String(this.mover);
         let pos = null;
-        if (role == "") {
+        if (role == "")
             pos = this.player.select(playerName);
-        }
-        else {
-            if (this.mover == 2) {
-                pos = this.rdPlayer.select();
-            }
-        }
+        else if (this.mover == 2)
+            pos = this.rdPlayer.select();
         if (pos instanceof Array) {
             this.virtualBoard[pos[1]][pos[0]] = playMark;
             if (opponent == "random") {
-                if (this.mover == 1) {
+                if (this.mover == 1)
                     this.rdPlayer.updateChoices(pos);
-                }
             }
-            else {
-                if (this.mover == 2) {
-                    this.player.moveWithOpponent(playerName, pos);
-                }
-            }
+            else if (this.mover == 2)
+                this.player.moveWithOpponent(playerName, pos);
         }
     }
     judge() {
@@ -98,12 +87,10 @@ export class TicTacToe {
                 this.player.backPropagate("-1");
                 this.player.clearPath();
             }
-            if (this.p2 == "random") {
+            if (this.p2 == "random")
                 this.rdPlayer.resetChoices();
-            }
-            else {
+            else
                 this.endGameWithHuman(false, winner);
-            }
             this.gameRunning = false;
             this.totalGames++;
         }
@@ -111,12 +98,10 @@ export class TicTacToe {
             this.tie++;
             this.player.backPropagate("0");
             this.player.clearPath();
-            if (this.p2 == "random") {
+            if (this.p2 == "random")
                 this.rdPlayer.resetChoices();
-            }
-            else {
+            else
                 this.endGameWithHuman(true);
-            }
             this.gameRunning = false;
             this.totalGames++;
         }
@@ -128,53 +113,51 @@ export class TicTacToe {
             this.winningMessageDiv.className = "show";
         }
     }
+    genVirtualBoard() {
+        return [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]];
+    }
+    decideFirstMover() {
+        if (this.p2 == "random")
+            this.mover = 1;
+        else
+            this.mover = Math.floor(Math.random() * 2 + 1);
+    }
+    recordFirstMover() {
+        if (this.mover == 1)
+            this.p1Start++;
+        else
+            this.p2Start++;
+    }
     newGame() {
         this.gameRunning = true;
-        this.virtualBoard =
-            [[" ", " ", " "],
-                [" ", " ", " "],
-                [" ", " ", " "]];
-        if (this.p2 == "random") {
-            this.mover = 1;
-        }
-        else {
-            this.mover = Math.floor(Math.random() * 2 + 1);
-        }
-        if (this.mover == 1) {
-            this.p1Start++;
-        }
-        else {
-            this.p2Start++;
-        }
+        this.virtualBoard = this.genVirtualBoard();
+        this.decideFirstMover();
+        this.recordFirstMover();
     }
-    play(trainTimes, p1 = "", p2 = "") {
+    play(playTimes, p1 = "", p2 = "") {
         this.p1 = p1;
         this.p2 = p2;
-        this.trainStatisticsRefresh();
+        this.refreshTrainStat();
         this.newGame();
         if (p2 == "random") {
             while (this.gameRunning) {
                 if (this.mover == 1) {
                     this.playerMakeMove(p1, p2);
                     this.judge();
-                    if (this.totalGames == trainTimes) {
+                    if (this.totalGames == playTimes)
                         break;
-                    }
                     if (!this.gameRunning) {
                         this.newGame();
-                        if (this.mover == 1) {
+                        if (this.mover == 1)
                             continue;
-                        }
                     }
                 }
                 this.playerMakeMove(p2, p1);
                 this.judge();
-                if (this.totalGames == trainTimes) {
+                if (this.totalGames == playTimes)
                     break;
-                }
-                if (!this.gameRunning) {
+                if (!this.gameRunning)
                     this.newGame();
-                }
             }
         }
     }
@@ -192,11 +175,12 @@ export class TicTacToe {
     }
     printTrainResult() {
         console.log(`Game start with P1: ${this.p1Start} / P2: ${this.p2Start}`);
-        console.log(`P1 winning rate: ${this.p1Win / this.totalGames * 100}`);
-        console.log(`P2 winning rate: ${this.p2Win / this.totalGames * 100}`);
-        console.log(`Tie rate: ${this.tie / this.totalGames * 100}`);
+        let p1WinningRate = Math.round(this.p1Win / this.totalGames * 10000) / 100;
+        let p2WinningRate = Math.round(this.p2Win / this.totalGames * 10000) / 100;
+        let tieRate = Math.round(this.tie / this.totalGames * 10000) / 100;
+        console.log(`P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${tieRate}%`);
     }
-    trainStatisticsRefresh() {
+    refreshTrainStat() {
         this.p1Start = 0;
         this.p2Start = 0;
         this.totalGames = 0;
@@ -206,9 +190,8 @@ export class TicTacToe {
     }
     machineMakeMove() {
         let pos = this.player.select("1");
-        if (pos instanceof Array) {
+        if (pos instanceof Array)
             this.virtualBoard[pos[1]][pos[0]] = "O";
-        }
         return pos;
     }
 }
