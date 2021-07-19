@@ -1,4 +1,4 @@
-import { Node2 } from "./node2.js";
+import { Node2 } from "./node.js";
 export class MachinePlayer2 {
     constructor() {
         this._database = { "BBBBBBBBB": new Node2(0) };
