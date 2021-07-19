@@ -67,19 +67,20 @@ export class MachinePlayer implements Player {
         //         "1" means that the first mover won,
         //         "-1" means that the first mover lost,
         //         "0" means that this game went tie.
-        let probe: Node;
-        probe = state == "2" ? this._temp.childrenList[0] : this._temp;
+        let probe: Node = state == "2" ? this._temp.childrenList[0] : this._temp;
         let depth: number = 0;
+        // Move the probe to the top of tree(blank-board situation),
+        // and set all values along the path to [mull, null]
         while (probe.parent != null) {
             probe = probe.parent;
             probe.value = [null, null];
             depth++;
         }
-        if (state == "1") this._temp.value = [null, 100 / depth];
-        else if (state == "-1") this._temp.value = [null, -100 / depth];
+        if (state == "1") this._temp.value = [null, 100 / depth];   // Using the less steps to win, the better.
+        else if (state == "-1") this._temp.value = [null, -100 / depth];    // Using the more steps to lose, the better.
         else if (state == "0") this._temp.value = [null, 0];
-        this.minimax(probe, true);
-        if (state != "2") this._temp = probe;
+        this.minimax(probe, true);  // Use minimax() to re-fill in all the values that's been set to [null, null].
+        if (state != "2") this._temp = probe;   // Back to the blank-board situation because the game has been over.
     }
     public hasNullValue(aListOfNodes: Node[]): [boolean, number[]] {
         let hasNull: boolean = false;
