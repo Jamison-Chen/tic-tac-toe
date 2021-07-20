@@ -1,7 +1,7 @@
-import { Node2 } from "./node.js";
-export class MachinePlayer2 {
+import { Node } from "./node.js";
+export class MachinePlayer {
     constructor() {
-        this._database = { "BBBBBBBBB": new Node2(0) };
+        this._database = { "BBBBBBBBB": new Node(0) };
         this._path = ["BBBBBBBBB"];
         this.myMark = "";
     }
@@ -89,7 +89,7 @@ export class MachinePlayer2 {
         for (let each of allPossibleNextStateHash) {
             this._database[this._path[this._path.length - 1]].appendChild(each);
             if (this._database[each] == undefined || this._database[each] == null) {
-                this._database[each] = new Node2(0);
+                this._database[each] = new Node(0);
             }
         }
         this.backPropagate("forExpansion");

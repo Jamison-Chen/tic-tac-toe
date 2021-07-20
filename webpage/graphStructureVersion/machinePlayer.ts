@@ -1,10 +1,10 @@
-import { Node2 } from "./node.js";
-export class MachinePlayer2 {
+import { Node } from "./node.js";
+export class MachinePlayer {
     private _path: string[];
     private _database: any;
     public myMark: string;
     public constructor() {
-        this._database = { "BBBBBBBBB": new Node2(0) };
+        this._database = { "BBBBBBBBB": new Node(0) };
         this._path = ["BBBBBBBBB"];
         this.myMark = "";
     }
@@ -84,13 +84,13 @@ export class MachinePlayer2 {
         for (let each of allPossibleNextStateHash) {
             this._database[this._path[this._path.length - 1]].appendChild(each);
             if (this._database[each] == undefined || this._database[each] == null) {
-                this._database[each] = new Node2(0);
+                this._database[each] = new Node(0);
             }
         }
         this.backPropagate("forExpansion");
     }
     public backPropagate(state: "forExpansion" | "firstMoverWin" | "firstMoverLose" | "tie"): void {
-        let currentNode: Node2 = this._database[this._path[this._path.length - 1]];
+        let currentNode: Node = this._database[this._path[this._path.length - 1]];
         let depth: number = this._path.length - 1;
         // Set all values along the path to null.
         for (let eachHashVal of this._path) this._database[eachHashVal].value = null;
@@ -112,7 +112,7 @@ export class MachinePlayer2 {
             "nullIdxList": nullIdxList
         }
     }
-    private evalValByMinimax(nodeEvaluated: Node2, isMaximizer: boolean): void {
+    private evalValByMinimax(nodeEvaluated: Node, isMaximizer: boolean): void {
         let currentChildrenList = nodeEvaluated.childrenList;
         let aboutThisNode = this.hasNullValueChild(currentChildrenList);
         if (aboutThisNode["hasNullChild"]) {

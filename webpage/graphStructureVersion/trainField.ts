@@ -1,4 +1,4 @@
-import { MachinePlayer2 } from './machinePlayer.js';
+import { MachinePlayer } from './machinePlayer.js';
 import { RandomPlayer } from './randomPlayer.js';
 export class TicTacToe {
     public winningMessageDiv: HTMLElement | null;
@@ -14,7 +14,7 @@ export class TicTacToe {
     public virtualBoard: string[][];
     public gameRunning: boolean;
     public mover: number;
-    public player: MachinePlayer2;
+    public player: MachinePlayer;
     public rdPlayer: RandomPlayer;
     public constructor() {
         this.winningMessageDiv = document.getElementById("winning-message");
@@ -30,7 +30,7 @@ export class TicTacToe {
         this.p1Win = 0;
         this.p2Win = 0;
         this.tie = 0;
-        this.player = new MachinePlayer2();
+        this.player = new MachinePlayer();
         this.rdPlayer = new RandomPlayer(
             [[0, 0], [0, 1], [0, 2],
             [1, 0], [1, 1], [1, 2],
@@ -50,7 +50,7 @@ export class TicTacToe {
         }
     }
 
-    public judge(machinesMark: "O" | "X"): void {
+    public judge(): void {
         let winner: string = "";
         let hasWinner: boolean = false;
         // Check each row
@@ -147,7 +147,7 @@ export class TicTacToe {
             while (this.gameRunning) {
                 if (this.mover == 1) {
                     this.playerMakeMove(p1, p2);
-                    this.judge("O");
+                    this.judge();
                     if (this.totalGames == playTimes) break;
                     if (!this.gameRunning) {
                         this.newGame();
@@ -155,7 +155,7 @@ export class TicTacToe {
                     }
                 }
                 this.playerMakeMove(p2, p1);
-                this.judge("X");
+                this.judge();
                 if (this.totalGames == playTimes) break;
                 if (!this.gameRunning) this.newGame();
             }

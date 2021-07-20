@@ -49,7 +49,7 @@ function singlePlayerMode(e: Event, shouldTrain: boolean): void {
     setTimeout(() => {
         board?.classList.add("show");
         mode = "single";
-        if (shouldTrain) game.trainMachine(60000, 6000, "random");
+        if (shouldTrain) game.trainMachine(50000, 5000, "random");
         game.play(1, "", "human");
         setupGameBoard();
         if (game.mover == 1) {
@@ -72,7 +72,7 @@ function machineMakeMove(): void {
             aCell.removeEventListener("click", handleClickSingle);
         }
     }
-    game.judge(singleModeMachineMark);
+    game.judge();
     // Human's turn
     board?.classList.replace(singleModeMachineMark, singleModeHumanMark);
 }
@@ -119,7 +119,7 @@ function handleClickSingle(e: Event): void {
             parseInt(e.currentTarget.id.split(",")[1])];
         game.virtualBoard[pos[0]][pos[1]] = singleModeHumanMark;
         game.player.moveWithOpponent(game.virtualBoard);
-        game.judge(singleModeMachineMark);
+        game.judge();
         // Machine's turn
         board?.classList.replace(singleModeHumanMark, singleModeMachineMark);
         if (game.gameRunning) machineMakeMove();

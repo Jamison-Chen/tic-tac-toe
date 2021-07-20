@@ -1,4 +1,4 @@
-import { MachinePlayer2 } from './machinePlayer.js';
+import { MachinePlayer } from './machinePlayer.js';
 import { RandomPlayer } from './randomPlayer.js';
 export class TicTacToe {
     constructor() {
@@ -15,7 +15,7 @@ export class TicTacToe {
         this.p1Win = 0;
         this.p2Win = 0;
         this.tie = 0;
-        this.player = new MachinePlayer2();
+        this.player = new MachinePlayer();
         this.rdPlayer = new RandomPlayer([[0, 0], [0, 1], [0, 2],
             [1, 0], [1, 1], [1, 2],
             [2, 0], [2, 1], [2, 2]]);
@@ -35,7 +35,7 @@ export class TicTacToe {
                 this.player.moveWithOpponent(this.virtualBoard);
         }
     }
-    judge(machinesMark) {
+    judge() {
         let winner = "";
         let hasWinner = false;
         // Check each row
@@ -136,7 +136,7 @@ export class TicTacToe {
             while (this.gameRunning) {
                 if (this.mover == 1) {
                     this.playerMakeMove(p1, p2);
-                    this.judge("O");
+                    this.judge();
                     if (this.totalGames == playTimes)
                         break;
                     if (!this.gameRunning) {
@@ -146,7 +146,7 @@ export class TicTacToe {
                     }
                 }
                 this.playerMakeMove(p2, p1);
-                this.judge("X");
+                this.judge();
                 if (this.totalGames == playTimes)
                     break;
                 if (!this.gameRunning)
