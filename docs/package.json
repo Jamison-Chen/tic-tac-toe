@@ -1,17 +1,16 @@
 {
-    "name": "webpage",
+    "name": "tic_tac_toe",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start:build": "tsc -w",
-        "start": "concurrently npm:start:*"
+        "start:build": "tsc -w"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "dependencies": {
-        "concurrently": "^5.3.0"
+    "devDependencies": {
+        "typescript": "^4.4.4"
     }
 }
