@@ -5,11 +5,14 @@ export default class MachinePlayer {
         this._path = ["BBBBBBBBB"];
         this.myMark = "";
     }
+    get database() {
+        return this._database;
+    }
     calcHashVal(board) {
         let hashVal = "";
         for (let i = 0; i < board.length; i++) {
             for (let j = 0; j < board[i].length; j++) {
-                if (board[i][j] == " ")
+                if (board[i][j] === " ")
                     hashVal += "B";
                 else
                     hashVal += board[i][j];
@@ -28,14 +31,14 @@ export default class MachinePlayer {
     genAllPossibleNextStateHash(currentHashVal, forWhom) {
         let allPosiibility = [];
         for (let i = 0; i < currentHashVal.length; i++) {
-            if (currentHashVal[i] == "B") {
-                if (forWhom == "mySelf") {
+            if (currentHashVal[i] === "B") {
+                if (forWhom === "mySelf") {
                     allPosiibility.push(currentHashVal.slice(0, i) +
                         this.myMark +
                         currentHashVal.slice(i + 1));
                 }
                 else {
-                    let opponentMark = this.myMark == "O" ? "X" : "O";
+                    let opponentMark = this.myMark === "O" ? "X" : "O";
                     allPosiibility.push(currentHashVal.slice(0, i) +
                         opponentMark +
                         currentHashVal.slice(i + 1));
@@ -45,16 +48,16 @@ export default class MachinePlayer {
         return allPosiibility;
     }
     isExternal(hashVal) {
-        return this._database[hashVal].childrenList.length == 0;
+        return this._database[hashVal].childrenList.length === 0;
     }
     updatePath(hashVal) {
         this._path.push(hashVal);
     }
-    moveWithOpponent(board) {
+    moveWithOpponent(position, latestBoard) {
         if (this.isExternal(this._path[this._path.length - 1])) {
             this.expand("opponent");
         }
-        this.updatePath(this.calcHashVal(board));
+        this.updatePath(this.calcHashVal(latestBoard));
     }
     clearPath() {
         this._path = ["BBBBBBBBB"];
@@ -72,16 +75,16 @@ export default class MachinePlayer {
             this.expand("mySelf");
         let currentNode = this._database[currentHashVal];
         this.shuffle(currentNode.childrenList);
-        this.evalValByMinimax(this._database[currentHashVal], myMark == "O");
+        this.evalValByMinimax(this._database[currentHashVal], myMark === "O");
         let bestNextHash;
         for (let eachChildHash of currentNode.childrenList) {
-            if (this._database[eachChildHash].value == currentNode.value) {
+            if (this._database[eachChildHash].value === currentNode.value) {
                 bestNextHash = eachChildHash;
                 break;
             }
         }
         let pos;
-        if (typeof bestNextHash == "string") {
+        if (typeof bestNextHash === "string") {
             pos = this.translateHashToMove(currentHashVal, bestNextHash);
             this.updatePath(bestNextHash);
         }
@@ -94,8 +97,8 @@ export default class MachinePlayer {
         let allPossibleNextStateHash = this.genAllPossibleNextStateHash(currentHashVal, forWhom);
         for (let each of allPossibleNextStateHash) {
             this._database[this._path[this._path.length - 1]].appendChild(each);
-            if (this._database[each] == undefined ||
-                this._database[each] == null) {
+            if (this._database[each] === undefined ||
+                this._database[each] === null) {
                 this._database[each] = new Node(0);
             }
         }
@@ -104,23 +107,25 @@ export default class MachinePlayer {
     backPropagate(state) {
         let currentNode = this._database[this._path[this._path.length - 1]];
         let depth = this._path.length - 1;
-        // Set all values along the path to null.
-        for (let eachHashVal of this._path)
+        // First, et all values along the path to null.
+        for (let eachHashVal of this._path) {
             this._database[eachHashVal].value = null;
-        if (state == "firstMoverWin")
-            currentNode.value = 100 / depth;
+        }
+        // Then, re-fill in all the values that's been set to null
         // Using the less steps to win, the better.
-        else if (state == "firstMoverLose")
-            currentNode.value = -100 / depth;
         // Using the more steps to lose, the better.
-        else if (state == "tie")
-            currentNode.value = 0; // Use minimax to re-fill in all the values that's been set to null.
+        if (state === "firstMoverWin")
+            currentNode.value = 100 / depth;
+        else if (state === "firstMoverLose")
+            currentNode.value = -100 / depth;
+        else if (state === "tie")
+            currentNode.value = 0;
     }
     hasNullValueChild(aListOfHashes) {
         let hasNullChild = false;
         let nullIdxList = [];
         for (let i = 0; i < aListOfHashes.length; i++) {
-            if (this._database[aListOfHashes[i]].value == null) {
+            if (this._database[aListOfHashes[i]].value === null) {
                 hasNullChild = true;
                 nullIdxList.push(i);
             }
@@ -139,16 +144,17 @@ export default class MachinePlayer {
             }
         }
         let childrenValueList = [];
-        for (let each of currentChildrenList)
+        for (let each of currentChildrenList) {
             childrenValueList.push(this._database[each].value);
+        }
         function ascendingSort(a, b) {
-            if (a == b)
+            if (a === b)
                 return 0;
             else
                 return a < b ? -1 : 1;
         }
         function descendingSort(a, b) {
-            if (a == b)
+            if (a === b)
                 return 0;
             else
                 return a < b ? 1 : -1;
@@ -159,6 +165,6 @@ export default class MachinePlayer {
         nodeEvaluated.value = v;
     }
     printDatabaseInfo() {
-        console.log(Object.keys(this._database).length);
+        console.log(`Database size: ${Object.keys(this._database).length}`);
     }
 }

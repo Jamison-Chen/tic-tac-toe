@@ -6,14 +6,14 @@ export default class RandomPlayer {
     resetChoices() {
         this._availableChoices = this._allChoices;
     }
-    updateChoices(pos) {
+    moveWithOpponent(position, latestBoard = []) {
         this._availableChoices = this._availableChoices.filter((each) => {
-            return each[0] !== pos[0] || each[1] !== pos[1];
+            return each[0] !== position[0] || each[1] !== position[1];
         });
     }
     select() {
-        let pos = this._availableChoices[Math.floor(Math.random() * this._availableChoices.length)];
-        this.updateChoices(pos);
-        return pos;
+        let position = this._availableChoices[Math.floor(Math.random() * this._availableChoices.length)];
+        this.moveWithOpponent(position);
+        return position;
     }
 }

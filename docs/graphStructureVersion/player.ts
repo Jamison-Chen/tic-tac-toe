@@ -1,3 +1,7 @@
 export default interface Player {
-    select: Function;
+    select(arg?: any): [number, number];
+    moveWithOpponent(
+        position: [number, number],
+        latestBoard: (" " | "X" | "O")[][]
+    ): void;
 }

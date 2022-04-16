@@ -9,17 +9,20 @@ export default class RandomPlayer implements Player {
     public resetChoices(): void {
         this._availableChoices = this._allChoices;
     }
-    public updateChoices(pos: [number, number]): void {
+    public moveWithOpponent(
+        position: [number, number],
+        latestBoard: (" " | "X" | "O")[][] = []
+    ): void {
         this._availableChoices = this._availableChoices.filter((each) => {
-            return each[0] !== pos[0] || each[1] !== pos[1];
+            return each[0] !== position[0] || each[1] !== position[1];
         });
     }
     public select(): [number, number] {
-        let pos: [number, number] =
+        let position: [number, number] =
             this._availableChoices[
                 Math.floor(Math.random() * this._availableChoices.length)
             ];
-        this.updateChoices(pos);
-        return pos;
+        this.moveWithOpponent(position);
+        return position;
     }
 }

@@ -1,10 +1,12 @@
 import MachinePlayer from "./machinePlayer.js";
 import RandomPlayer from "./randomPlayer.js";
+import Player from "./player.js";
+import HumanPlayer from "./humanPlayer.js";
 export default class TicTacToe {
     public winningMessageDiv: HTMLElement;
     public winningMessageText: HTMLElement;
-    private p1: string;
-    private p2: string;
+    public player1: Player | undefined;
+    public player2: Player | undefined;
     private p1Start: number;
     private p2Start: number;
     private p1Win: number;
@@ -14,8 +16,6 @@ export default class TicTacToe {
     public virtualBoard: (" " | "X" | "O")[][];
     public gameRunning: boolean;
     public mover: number;
-    public player: MachinePlayer;
-    public rdPlayer: RandomPlayer;
     public constructor() {
         this.winningMessageDiv = document.getElementById(
             "winning-message"
@@ -23,8 +23,6 @@ export default class TicTacToe {
         this.winningMessageText = document.querySelector(
             "[data-winning-message-text]"
         ) as HTMLElement;
-        this.p1 = "";
-        this.p2 = "";
         this.virtualBoard = this.genVirtualBoard();
         this.gameRunning = true;
         this.mover = 0;
@@ -34,35 +32,19 @@ export default class TicTacToe {
         this.p1Win = 0;
         this.p2Win = 0;
         this.tie = 0;
-        this.player = new MachinePlayer();
-        this.rdPlayer = new RandomPlayer([
-            [0, 0],
-            [0, 1],
-            [0, 2],
-            [1, 0],
-            [1, 1],
-            [1, 2],
-            [2, 0],
-            [2, 1],
-            [2, 2],
-        ]);
     }
 
-    private playerMakeMove(role: string, opponent: string): void {
+    private playerMakeMove(playerInTurn: Player, opponent: Player): void {
         let playMark: "O" | "X" = this.mover === 1 ? "O" : "X";
         let pos: [number, number];
-        if (role === "") pos = this.player.select(playMark);
-        else pos = this.rdPlayer.select();
-        if (pos instanceof Array) {
-            this.virtualBoard[pos[0]][pos[1]] = playMark;
-            if (this.mover === 1 && opponent === "random") {
-                this.rdPlayer.updateChoices(pos);
-            } else this.player.moveWithOpponent(this.virtualBoard);
-        }
+        pos = playerInTurn.select(playMark);
+        this.virtualBoard[pos[0]][pos[1]] = playMark;
+        opponent.moveWithOpponent(pos, this.virtualBoard);
     }
 
     public judge(): void {
         let winner: "O" | "X" | null = null;
+
         // Check each row
         for (let i = 0; i < this.virtualBoard.length; i++) {
             if (
@@ -116,20 +98,46 @@ export default class TicTacToe {
         if (winner !== null) {
             if (winner === "O") this.p1Win++;
             else this.p2Win++;
-            this.player.backPropagate(
-                winner === "O" ? "firstMoverWin" : "firstMoverLose"
-            );
-            this.player.clearPath();
-            if (this.p2 === "random") this.rdPlayer.resetChoices();
-            else this.endGameWithHuman(false, winner);
+            if (this.player1 instanceof MachinePlayer) {
+                this.player1.backPropagate(
+                    winner === "O" ? "firstMoverWin" : "firstMoverLose"
+                );
+                this.player1.clearPath();
+            } else if (this.player1 instanceof RandomPlayer) {
+                this.player1.resetChoices();
+            } else if (this.player1 instanceof HumanPlayer) {
+                this.endGameWithHuman(false, winner);
+            }
+            if (this.player2 instanceof MachinePlayer) {
+                this.player2.backPropagate(
+                    winner === "O" ? "firstMoverWin" : "firstMoverLose"
+                );
+                this.player2.clearPath();
+            } else if (this.player2 instanceof RandomPlayer) {
+                this.player2.resetChoices();
+            } else if (this.player2 instanceof HumanPlayer) {
+                this.endGameWithHuman(false, winner);
+            }
             this.gameRunning = false;
             this.totalGames++;
         } else if (!this.virtualBoard.some((r) => r.some((e) => e === " "))) {
             this.tie++;
-            this.player.backPropagate("tie");
-            this.player.clearPath();
-            if (this.p2 === "random") this.rdPlayer.resetChoices();
-            else this.endGameWithHuman(true);
+            if (this.player1 instanceof MachinePlayer) {
+                this.player1.backPropagate("tie");
+                this.player1.clearPath();
+            } else if (this.player1 instanceof RandomPlayer) {
+                this.player1.resetChoices();
+            } else if (this.player1 instanceof HumanPlayer) {
+                this.endGameWithHuman(true);
+            }
+            if (this.player2 instanceof MachinePlayer) {
+                this.player2.backPropagate("tie");
+                this.player2.clearPath();
+            } else if (this.player2 instanceof RandomPlayer) {
+                this.player2.resetChoices();
+            } else if (this.player2 instanceof HumanPlayer) {
+                this.endGameWithHuman(true);
+            }
             this.gameRunning = false;
             this.totalGames++;
         }
@@ -152,7 +160,7 @@ export default class TicTacToe {
     }
 
     private decideFirstMover(): void {
-        if (this.p2 === "random") this.mover = 1;
+        if (this.player2 instanceof RandomPlayer) this.mover = 1;
         else this.mover = Math.floor(Math.random() * 2 + 1);
     }
 
@@ -168,16 +176,21 @@ export default class TicTacToe {
         this.recordFirstMover();
     }
 
-    public play(playTimes: number, p1: string, p2: string): void {
-        this.p1 = p1;
-        this.p2 = p2;
+    public play(
+        playTimes: number,
+        p1: Player,
+        p2: Player,
+        isTraining: boolean
+    ): void {
+        this.player1 = p1;
+        this.player2 = p2;
         this.refreshTrainStat();
         this.newGame();
-        if (p2 === "random") {
+        if (isTraining) {
             // This loop is only designed for training.
             while (this.gameRunning) {
                 if (this.mover === 1) {
-                    this.playerMakeMove(p1, p2);
+                    this.playerMakeMove(this.player1, this.player2);
                     this.judge();
                     if (this.totalGames === playTimes) break;
                     if (!this.gameRunning) {
@@ -185,7 +198,7 @@ export default class TicTacToe {
                         if (this.mover === 1) continue;
                     }
                 }
-                this.playerMakeMove(p2, p1);
+                this.playerMakeMove(this.player2, this.player1);
                 this.judge();
                 if (this.totalGames === playTimes) break;
                 if (!this.gameRunning) this.newGame();
@@ -196,16 +209,17 @@ export default class TicTacToe {
     public trainMachine(
         trainTimes: number,
         batch: number,
-        trainType: string
+        trainee: Player,
+        trainer: Player
     ): void {
         let epoch: number = Math.floor(trainTimes / batch);
         let remainder: number = trainTimes % batch;
         for (let i = 0; i < epoch; i++) {
-            this.play(batch, "", trainType);
+            this.play(batch, trainee, trainer, true);
             this.printTrainResult();
         }
         if (remainder !== 0) {
-            this.play(remainder, "", trainType);
+            this.play(remainder, trainee, trainer, true);
             this.printTrainResult();
         }
     }
@@ -222,6 +236,7 @@ export default class TicTacToe {
         console.log(
             `P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${tieRate}%`
         );
+        (this.player1 as MachinePlayer).printDatabaseInfo();
     }
 
     private refreshTrainStat(): void {
@@ -231,15 +246,5 @@ export default class TicTacToe {
         this.p1Win = 0;
         this.p2Win = 0;
         this.tie = 0;
-    }
-
-    public machineMakeMove(
-        machinesMark: "O" | "X"
-    ): [number, number] | null | "ROOT" {
-        let pos = this.player.select(machinesMark);
-        if (pos instanceof Array) {
-            this.virtualBoard[pos[0]][pos[1]] = machinesMark;
-        }
-        return pos;
     }
 }

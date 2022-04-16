@@ -1,6 +1,22 @@
-import TicTacToe from "./trainField.js";
+import TicTacToe from "./ticTacToe.js";
+import MachinePlayer from "./machinePlayer.js";
+import RandomPlayer from "./randomPlayer.js";
+import HumanPlayer from "./humanPlayer.js";
 
 const game: TicTacToe = new TicTacToe();
+
+let machinePlayer: MachinePlayer;
+let randomPlayer = new RandomPlayer([
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [1, 0],
+    [1, 1],
+    [1, 2],
+    [2, 0],
+    [2, 1],
+    [2, 2],
+]);
 
 const controlBar: HTMLElement = document.getElementById(
     "control-bar"
@@ -45,19 +61,15 @@ const winningCombinations: number[][] = [
     [2, 4, 6],
 ];
 
-multiplayerBtn.addEventListener("click", multiplayerMode);
-naiveMachineBtn.addEventListener("click", (e) => {
-    singlePlayerMode(e, false);
-});
-trainedMachineBtn.addEventListener("click", (e) => {
-    singlePlayerMode(e, true);
-});
-reloadBtn.addEventListener("click", (e) => {
-    location.reload();
-});
-restartBtn.addEventListener("click", (e) => {
-    location.reload();
-});
+multiplayerBtn.addEventListener("click", () => startMultiplayerMode());
+naiveMachineBtn.addEventListener("click", (e) =>
+    startSinglePlayerMode(e, false)
+);
+trainedMachineBtn.addEventListener("click", (e) =>
+    startSinglePlayerMode(e, true)
+);
+reloadBtn.addEventListener("click", (e) => location.reload());
+restartBtn.addEventListener("click", (e) => location.reload());
 
 function disableBtns(): void {
     multiplayerBtn.disabled = true;
@@ -66,18 +78,21 @@ function disableBtns(): void {
     controlBar.style.bottom = "0";
 }
 
-function singlePlayerMode(e: Event, shouldTrain: boolean): void {
+function startSinglePlayerMode(e: Event, shouldTrain: boolean): void {
     disableBtns();
     setTimeout(() => {
         board.classList.add("show");
         mode = "single";
-        if (shouldTrain) game.trainMachine(50000, 5000, "random");
-        game.play(1, "", "human");
+        machinePlayer = new MachinePlayer();
+        if (shouldTrain) {
+            game.trainMachine(20000, 2000, machinePlayer, randomPlayer);
+        }
         setupGameBoard();
-        if (game.mover == 1) {
+        game.play(1, machinePlayer, new HumanPlayer(), false);
+        if (game.mover === 1) {
             singleModeHumanMark = "X";
             singleModeMachineMark = "O";
-            machineMakeMove();
+            machineMakeMove(machinePlayer);
         } else {
             singleModeHumanMark = "O";
             singleModeMachineMark = "X";
@@ -85,21 +100,19 @@ function singlePlayerMode(e: Event, shouldTrain: boolean): void {
     });
 }
 
-function machineMakeMove(): void {
-    let pos = game.machineMakeMove(singleModeMachineMark);
-    if (pos instanceof Array) {
-        const aCell = document.getElementById(`${pos[0]},${pos[1]}`);
-        if (aCell !== null) {
-            placeMark(aCell, singleModeMachineMark);
-            aCell.removeEventListener("click", handleClickSingle);
-        }
-    }
+function machineMakeMove(machinePlayer: MachinePlayer): void {
+    let pos = machinePlayer.select(singleModeMachineMark);
+    game.virtualBoard[pos[0]][pos[1]] = singleModeMachineMark;
+    const aCell = document.getElementById(`${pos[0]},${pos[1]}`) as HTMLElement;
+    placeMark(aCell, singleModeMachineMark);
+    aCell.removeEventListener("click", handleClickSingle);
     game.judge();
+
     // Human's turn
     board.classList.replace(singleModeMachineMark, singleModeHumanMark);
 }
 
-function multiplayerMode(): void {
+function startMultiplayerMode(): void {
     disableBtns();
     board.classList.add("show");
     mode = "multi";
@@ -110,7 +123,7 @@ function setupGameBoard(): void {
     board.classList.remove("X");
     board.classList.remove("O");
     board.classList.add("O");
-    if (mode == "single") {
+    if (mode === "single") {
         cellDivs.forEach((each) => {
             each.classList.remove("O");
             each.classList.remove("X");
@@ -143,11 +156,12 @@ function handleClickSingle(e: Event): void {
             parseInt(e.currentTarget.id.split(",")[1]),
         ];
         game.virtualBoard[pos[0]][pos[1]] = singleModeHumanMark;
-        game.player.moveWithOpponent(game.virtualBoard);
+        machinePlayer.moveWithOpponent(pos, game.virtualBoard);
         game.judge();
-        // Machine's turn
         board.classList.replace(singleModeHumanMark, singleModeMachineMark);
-        if (game.gameRunning) machineMakeMove();
+
+        // Machine's turn
+        if (game.gameRunning) machineMakeMove(machinePlayer);
     }
 }
 
@@ -186,7 +200,7 @@ function multiplayerEndGame(isDraw: boolean): void {
 }
 
 function swapTurn(currentPlayer: string): void {
-    if (currentPlayer == "O") board.classList.replace("O", "X");
+    if (currentPlayer === "O") board.classList.replace("O", "X");
     else board.classList.replace("X", "O");
     xTurn = !xTurn;
 }
