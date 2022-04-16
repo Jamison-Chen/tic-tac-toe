@@ -1,17 +1,27 @@
-import { Node } from './node.js';
+import { Node } from "./node.js";
 export class MachinePlayer {
     constructor() {
         this._root = new Node(null, "ROOT", [null, Infinity]);
         this._temp = this._root;
-        this._allChoices = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]];
+        this._allChoices = [
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 0],
+            [1, 1],
+            [1, 2],
+            [2, 0],
+            [2, 1],
+            [2, 2],
+        ];
         this._path = [];
     }
     isExternal(n) {
-        return n.childrenList.length == 0;
+        return n.childrenList.length === 0;
     }
     updatePath(pos, playerName) {
-        this._allChoices = this._allChoices.filter(each => {
-            return (each[0] != pos[0] || each[1] != pos[1]);
+        this._allChoices = this._allChoices.filter((each) => {
+            return each[0] !== pos[0] || each[1] !== pos[1];
         });
         this._path.push([pos, playerName]);
     }
@@ -20,7 +30,8 @@ export class MachinePlayer {
             this.expand();
         let tempChildrenList = this._temp.childrenList;
         for (let i = 0; i < tempChildrenList.length; i++) {
-            if (tempChildrenList[i].name[0] == opponentMovePos[0] && tempChildrenList[i].name[1] == opponentMovePos[1]) {
+            if (tempChildrenList[i].name[0] === opponentMovePos[0] &&
+                tempChildrenList[i].name[1] === opponentMovePos[1]) {
                 this._temp = tempChildrenList[i];
                 this.updatePath(opponentMovePos, opponentName);
                 break;
@@ -29,7 +40,17 @@ export class MachinePlayer {
     }
     clearPath() {
         this._path = [];
-        this._allChoices = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]];
+        this._allChoices = [
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 0],
+            [1, 1],
+            [1, 2],
+            [2, 0],
+            [2, 1],
+            [2, 2],
+        ];
     }
     select(playerName) {
         if (this.isExternal(this._temp))
@@ -37,7 +58,7 @@ export class MachinePlayer {
         let tempChildrenList = this._temp.childrenList;
         let pos = null;
         for (let i = 0; i < tempChildrenList.length; i++) {
-            if (tempChildrenList[i].name == this._temp.value[0]) {
+            if (tempChildrenList[i].name === this._temp.value[0]) {
                 this._temp = tempChildrenList[i];
                 pos = this._temp.name;
                 this.updatePath(pos, playerName);
@@ -54,7 +75,7 @@ export class MachinePlayer {
     }
     expand() {
         this.shuffle(this._allChoices);
-        this._allChoices.forEach(each => {
+        this._allChoices.forEach((each) => {
             this._temp.appendChild(new Node(this._temp, each, [null, Infinity]));
         });
         this.backPropagate("2");
@@ -64,30 +85,33 @@ export class MachinePlayer {
         //         "1" means that the first mover won,
         //         "-1" means that the first mover lost,
         //         "0" means that this game went tie.
-        let probe = state == "2" ? this._temp.childrenList[0] : this._temp;
+        let probe = state === "2" ? this._temp.childrenList[0] : this._temp;
         let depth = 0;
         // Move the probe to the top of tree(blank-board situation),
         // and set all values along the path to [mull, null]
-        while (probe.parent != null) {
+        while (probe.parent !== null) {
             probe = probe.parent;
             probe.value = [null, null];
             depth++;
         }
-        if (state == "1")
-            this._temp.value = [null, 100 / depth]; // Using the less steps to win, the better.
-        else if (state == "-1")
-            this._temp.value = [null, -100 / depth]; // Using the more steps to lose, the better.
-        else if (state == "0")
+        if (state === "1")
+            this._temp.value = [null, 100 / depth];
+        // Using the less steps to win, the better.
+        else if (state === "-1")
+            this._temp.value = [null, -100 / depth];
+        // Using the more steps to lose, the better.
+        else if (state === "0")
             this._temp.value = [null, 0];
         this.minimax(probe, true); // Use minimax() to re-fill in all the values that's been set to [null, null].
-        if (state != "2")
+        if (state !== "2")
             this._temp = probe; // Back to the blank-board situation because the game has been over.
     }
     hasNullValue(aListOfNodes) {
         let hasNull = false;
         let items = [];
         for (let i = 0; i < aListOfNodes.length; i++) {
-            if (aListOfNodes[i].value[0] == null && aListOfNodes[i].value[1] == null) {
+            if (aListOfNodes[i].value[0] === null &&
+                aListOfNodes[i].value[1] === null) {
                 hasNull = true;
                 items.push(i);
             }
@@ -97,28 +121,30 @@ export class MachinePlayer {
     minimax(aTree, isMaximizer) {
         let needRecursion = this.hasNullValue(aTree.childrenList);
         if (needRecursion[0]) {
-            needRecursion[1].forEach(each => {
+            needRecursion[1].forEach((each) => {
                 this.minimax(aTree.childrenList[each], !isMaximizer);
             });
         }
         let cInfo = [];
-        aTree.childrenList.forEach(each => {
+        aTree.childrenList.forEach((each) => {
             cInfo.push([each.name, each.value[1]]);
         });
         function ascendingSort(a, b) {
-            if (a[1] == b[1])
+            if (a[1] === b[1])
                 return 0;
             else
                 return a[1] < b[1] ? -1 : 1;
         }
         function descendingSort(a, b) {
-            if (a[1] == b[1])
+            if (a[1] === b[1])
                 return 0;
             else
-                return (a[1] < b[1]) ? 1 : -1;
+                return a[1] < b[1] ? 1 : -1;
         }
         let v;
-        v = isMaximizer ? cInfo.sort(descendingSort)[0] : cInfo.sort(ascendingSort)[0];
+        v = isMaximizer
+            ? cInfo.sort(descendingSort)[0]
+            : cInfo.sort(ascendingSort)[0];
         aTree.value = v;
     }
 }

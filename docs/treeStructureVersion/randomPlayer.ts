@@ -9,12 +9,15 @@ export class RandomPlayer {
         this._availableChoices = this._allChoices;
     }
     public updateChoices(pos: [number, number]): void {
-        this._availableChoices = this._availableChoices.filter(each => {
-            return (each[0] != pos[0] || each[1] != pos[1]);
+        this._availableChoices = this._availableChoices.filter((each) => {
+            return each[0] !== pos[0] || each[1] !== pos[1];
         });
     }
     public select(): [number, number] {
-        let pos: [number, number] = this._availableChoices[Math.floor(Math.random() * this._availableChoices.length)];
+        let pos: [number, number] =
+            this._availableChoices[
+                Math.floor(Math.random() * this._availableChoices.length)
+            ];
         this.updateChoices(pos);
         return pos;
     }

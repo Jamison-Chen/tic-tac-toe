@@ -1,7 +1,7 @@
 import { Node } from "./node.js";
 export class MachinePlayer {
     constructor() {
-        this._database = { "BBBBBBBBB": new Node(0) };
+        this._database = { BBBBBBBBB: new Node(0) };
         this._path = ["BBBBBBBBB"];
         this.myMark = "";
     }
@@ -19,7 +19,7 @@ export class MachinePlayer {
     }
     translateHashToMove(hashBefore, hashAfter) {
         for (let i = 0; i < hashBefore.length; i++) {
-            if (hashBefore[i] != hashAfter[i])
+            if (hashBefore[i] !== hashAfter[i])
                 return [Math.floor(i / 3), i % 3];
         }
         throw "something wrong!";
@@ -29,11 +29,15 @@ export class MachinePlayer {
         for (let i = 0; i < currentHashVal.length; i++) {
             if (currentHashVal[i] == "B") {
                 if (forWhom == "mySelf") {
-                    allPosiibility.push(currentHashVal.slice(0, i) + this.myMark + currentHashVal.slice(i + 1));
+                    allPosiibility.push(currentHashVal.slice(0, i) +
+                        this.myMark +
+                        currentHashVal.slice(i + 1));
                 }
                 else {
                     let opponentMark = this.myMark == "O" ? "X" : "O";
-                    allPosiibility.push(currentHashVal.slice(0, i) + opponentMark + currentHashVal.slice(i + 1));
+                    allPosiibility.push(currentHashVal.slice(0, i) +
+                        opponentMark +
+                        currentHashVal.slice(i + 1));
                 }
             }
         }
@@ -88,7 +92,8 @@ export class MachinePlayer {
         let allPossibleNextStateHash = this.genAllPossibleNextStateHash(currentHashVal, forWhom);
         for (let each of allPossibleNextStateHash) {
             this._database[this._path[this._path.length - 1]].appendChild(each);
-            if (this._database[each] == undefined || this._database[each] == null) {
+            if (this._database[each] == undefined ||
+                this._database[each] == null) {
                 this._database[each] = new Node(0);
             }
         }
@@ -101,9 +106,11 @@ export class MachinePlayer {
         for (let eachHashVal of this._path)
             this._database[eachHashVal].value = null;
         if (state == "firstMoverWin")
-            currentNode.value = 100 / depth; // Using the less steps to win, the better.
+            currentNode.value =
+                100 / depth; // Using the less steps to win, the better.
         else if (state == "firstMoverLose")
-            currentNode.value = -100 / depth; // Using the more steps to lose, the better.
+            currentNode.value =
+                -100 / depth; // Using the more steps to lose, the better.
         else if (state == "tie")
             currentNode.value = 0; // Use minimax to re-fill in all the values that's been set to null.
     }
@@ -117,8 +124,8 @@ export class MachinePlayer {
             }
         }
         return {
-            "hasNullChild": hasNullChild,
-            "nullIdxList": nullIdxList
+            hasNullChild: hasNullChild,
+            nullIdxList: nullIdxList,
         };
     }
     evalValByMinimax(nodeEvaluated, isMaximizer) {
@@ -144,7 +151,9 @@ export class MachinePlayer {
             else
                 return a < b ? 1 : -1;
         }
-        let v = isMaximizer ? childrenValueList.sort(descendingSort)[0] : childrenValueList.sort(ascendingSort)[0];
+        let v = isMaximizer
+            ? childrenValueList.sort(descendingSort)[0]
+            : childrenValueList.sort(ascendingSort)[0];
         nodeEvaluated.value = v;
     }
     printDatabaseInfo() {
