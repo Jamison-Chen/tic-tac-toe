@@ -1,4 +1,4 @@
-export class Node {
+export default class Node {
     private _value: number;
     private _childrenList: string[];
     public constructor(v: number) {

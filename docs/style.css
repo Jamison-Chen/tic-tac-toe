@@ -6,9 +6,10 @@
 
 :root {
     --cell-length: 100px;
-    --mark-size: calc(var(--cell-length)*.9);
+    --mark-size: calc(var(--cell-length) * 0.9);
     --mark-color: #000;
     --hover-mark-color: #aaa;
+    --button-color: #ddd;
     --text-color: #fff;
     --background-color: #fff;
 }
@@ -53,7 +54,7 @@ body {
     border-top: none;
 }
 
-.cell:nth-child(3n+1) {
+.cell:nth-child(3n + 1) {
     border-left: none;
 }
 
@@ -89,7 +90,7 @@ body {
 #main-board.X .cell:not(.X):not(.O):hover::before,
 #main-board.X .cell:not(.X):not(.O):hover::after {
     content: "";
-    width: calc(var(--mark-size)*.15);
+    width: calc(var(--mark-size) * 0.15);
     height: var(--mark-size);
     position: absolute;
 }
@@ -115,14 +116,14 @@ body {
 
 .cell.O::before,
 #main-board.O .cell:not(.X):not(.O):hover::before {
-    width: calc(var(--mark-size)*.85);
-    height: calc(var(--mark-size)*.85);
+    width: calc(var(--mark-size) * 0.85);
+    height: calc(var(--mark-size) * 0.85);
 }
 
 .cell.O::after,
 #main-board.O .cell:not(.X):not(.O):hover::after {
-    width: calc(var(--mark-size)*.6);
-    height: calc(var(--mark-size)*.6);
+    width: calc(var(--mark-size) * 0.6);
+    height: calc(var(--mark-size) * 0.6);
     background-color: var(--background-color);
 }
 
@@ -180,11 +181,12 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgba(0, 0, 0, .8);
+    background-color: rgba(0, 0, 0, 0.8);
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 4rem;
+    font-size: 3.2rem;
+    letter-spacing: 3px;
     color: var(--text-color);
 }
 
@@ -194,17 +196,23 @@ body {
 
 #restart-btn {
     border-radius: 5px;
-    font-size: 2rem;
-    background-color: var(--background-color);
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+    background-color: var(--button-color);
     border: none;
-    margin: 100px 0;
+    margin: 20px;
     padding: 8px 18px;
-}
-
-button:hover {
-    opacity: 90%;
 }
 
 #restart-btn:focus {
     outline: none;
+}
+
+#restart-btn:hover {
+    opacity: 1;
+    background-color: var(--background-color);
+}
+
+button:hover {
+    opacity: 0.8;
 }

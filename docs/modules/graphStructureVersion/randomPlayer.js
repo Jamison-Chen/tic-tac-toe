@@ -1,4 +1,4 @@
-export class RandomPlayer {
+export default class RandomPlayer {
     constructor(initChoices) {
         this._allChoices = initChoices;
         this._availableChoices = this._allChoices;

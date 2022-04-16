@@ -1,8 +1,8 @@
-import { MachinePlayer } from "./machinePlayer.js";
-import { RandomPlayer } from "./randomPlayer.js";
-export class TicTacToe {
-    public winningMessageDiv: HTMLElement | null;
-    public winningMessageText: HTMLElement | null;
+import MachinePlayer from "./machinePlayer.js";
+import RandomPlayer from "./randomPlayer.js";
+export default class TicTacToe {
+    public winningMessageDiv: HTMLElement;
+    public winningMessageText: HTMLElement;
     private p1: string;
     private p2: string;
     private p1Start: number;
@@ -11,16 +11,18 @@ export class TicTacToe {
     private p2Win: number;
     private totalGames: number;
     private tie: number;
-    public virtualBoard: string[][];
+    public virtualBoard: (" " | "X" | "O")[][];
     public gameRunning: boolean;
     public mover: number;
     public player: MachinePlayer;
     public rdPlayer: RandomPlayer;
     public constructor() {
-        this.winningMessageDiv = document.getElementById("winning-message");
+        this.winningMessageDiv = document.getElementById(
+            "winning-message"
+        ) as HTMLElement;
         this.winningMessageText = document.querySelector(
             "[data-winning-message-text]"
-        );
+        ) as HTMLElement;
         this.p1 = "";
         this.p2 = "";
         this.virtualBoard = this.genVirtualBoard();
@@ -53,49 +55,50 @@ export class TicTacToe {
         else pos = this.rdPlayer.select();
         if (pos instanceof Array) {
             this.virtualBoard[pos[0]][pos[1]] = playMark;
-            if (this.mover === 1 && opponent === "random")
+            if (this.mover === 1 && opponent === "random") {
                 this.rdPlayer.updateChoices(pos);
-            else this.player.moveWithOpponent(this.virtualBoard);
+            } else this.player.moveWithOpponent(this.virtualBoard);
         }
     }
 
     public judge(): void {
-        let winner: string = "";
-        let hasWinner: boolean = false;
+        let winner: "O" | "X" | null = null;
         // Check each row
         for (let i = 0; i < this.virtualBoard.length; i++) {
-            hasWinner = this.virtualBoard[i].every(
-                (e) =>
-                    e === this.virtualBoard[i][0] &&
-                    this.virtualBoard[i][0] !== " "
-            );
-            if (hasWinner) {
-                winner = this.virtualBoard[i][0];
+            if (
+                this.virtualBoard[i].every(
+                    (e) =>
+                        e === this.virtualBoard[i][0] &&
+                        this.virtualBoard[i][0] !== " "
+                )
+            ) {
+                winner = this.virtualBoard[i][0] as "O" | "X";
                 break;
             }
         }
-        if (!hasWinner) {
+        if (winner === null) {
             // Check each column
             for (let i = 0; i < this.virtualBoard[0].length; i++) {
-                hasWinner = this.virtualBoard.every(
-                    (eachRow) =>
-                        eachRow[i] === this.virtualBoard[0][i] &&
-                        this.virtualBoard[0][i] !== " "
-                );
-                if (hasWinner) {
-                    winner = this.virtualBoard[0][i];
+                if (
+                    this.virtualBoard.every(
+                        (eachRow) =>
+                            eachRow[i] === this.virtualBoard[0][i] &&
+                            this.virtualBoard[0][i] !== " "
+                    )
+                ) {
+                    winner = this.virtualBoard[0][i] as "O" | "X";
                     break;
                 }
             }
         }
-        if (!hasWinner) {
+        if (winner === null) {
             // Check each diagnal
-            let diagnal1: string[] = [
+            let diagnal1: ("O" | "X" | " ")[] = [
                 this.virtualBoard[0][0],
                 this.virtualBoard[1][1],
                 this.virtualBoard[2][2],
             ];
-            let diagnal2: string[] = [
+            let diagnal2: ("O" | "X" | " ")[] = [
                 this.virtualBoard[0][2],
                 this.virtualBoard[1][1],
                 this.virtualBoard[2][0],
@@ -103,18 +106,16 @@ export class TicTacToe {
             if (
                 diagnal1.every((e) => e === diagnal1[0] && diagnal1[0] !== " ")
             ) {
-                winner = diagnal1[0];
-                hasWinner = true;
+                winner = diagnal1[0] as "O" | "X";
             } else if (
                 diagnal2.every((e) => e === diagnal2[0] && diagnal2[0] !== " ")
             ) {
-                winner = diagnal2[0];
-                hasWinner = true;
+                winner = diagnal2[0] as "O" | "X";
             }
         }
-        if (hasWinner) {
+        if (winner !== null) {
             if (winner === "O") this.p1Win++;
-            else if (winner === "X") this.p2Win++;
+            else this.p2Win++;
             this.player.backPropagate(
                 winner === "O" ? "firstMoverWin" : "firstMoverLose"
             );
@@ -136,18 +137,13 @@ export class TicTacToe {
     }
 
     private endGameWithHuman(isDraw: boolean, winner?: string): void {
-        if (
-            this.winningMessageText !== null &&
-            this.winningMessageDiv !== null
-        ) {
-            this.winningMessageText.innerHTML = isDraw
-                ? "Draw!"
-                : `${winner} wins!`;
-            this.winningMessageDiv.className = "show";
-        }
+        this.winningMessageText.innerHTML = isDraw
+            ? "Draw!"
+            : `${winner} wins!`;
+        this.winningMessageDiv.className = "show";
     }
 
-    private genVirtualBoard(): string[][] {
+    private genVirtualBoard(): (" " | "X" | "O")[][] {
         return [
             [" ", " ", " "],
             [" ", " ", " "],
@@ -241,8 +237,9 @@ export class TicTacToe {
         machinesMark: "O" | "X"
     ): [number, number] | null | "ROOT" {
         let pos = this.player.select(machinesMark);
-        if (pos instanceof Array)
+        if (pos instanceof Array) {
             this.virtualBoard[pos[0]][pos[1]] = machinesMark;
+        }
         return pos;
     }
 }

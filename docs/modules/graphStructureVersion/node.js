@@ -1,4 +1,4 @@
-export class Node {
+export default class Node {
     constructor(v) {
         this._value = v;
         this._childrenList = [];

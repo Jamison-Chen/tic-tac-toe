@@ -1,5 +1,6 @@
-import { Node } from "./node.js";
-export class MachinePlayer {
+import Node from "./node.js";
+import Player from "./player.js";
+export default class MachinePlayer implements Player {
     private _path: string[];
     private _database: any;
     public myMark: string;
@@ -23,8 +24,9 @@ export class MachinePlayer {
         hashAfter: string
     ): [number, number] {
         for (let i = 0; i < hashBefore.length; i++) {
-            if (hashBefore[i] !== hashAfter[i])
+            if (hashBefore[i] !== hashAfter[i]) {
                 return [Math.floor(i / 3), i % 3];
+            }
         }
         throw "something wrong!";
     }
@@ -60,8 +62,9 @@ export class MachinePlayer {
         this._path.push(hashVal);
     }
     public moveWithOpponent(board: string[][]): void {
-        if (this.isExternal(this._path[this._path.length - 1]))
+        if (this.isExternal(this._path[this._path.length - 1])) {
             this.expand("opponent");
+        }
         this.updatePath(this.calcHashVal(board));
     }
     public clearPath(): void {
@@ -120,12 +123,10 @@ export class MachinePlayer {
         // Set all values along the path to null.
         for (let eachHashVal of this._path)
             this._database[eachHashVal].value = null;
-        if (state == "firstMoverWin")
-            currentNode.value =
-                100 / depth; // Using the less steps to win, the better.
-        else if (state == "firstMoverLose")
-            currentNode.value =
-                -100 / depth; // Using the more steps to lose, the better.
+        if (state == "firstMoverWin") currentNode.value = 100 / depth;
+        // Using the less steps to win, the better.
+        else if (state == "firstMoverLose") currentNode.value = -100 / depth;
+        // Using the more steps to lose, the better.
         else if (state == "tie") currentNode.value = 0; // Use minimax to re-fill in all the values that's been set to null.
     }
     private hasNullValueChild(aListOfHashes: string[]): {

@@ -1,6 +1,6 @@
-import { MachinePlayer } from "./machinePlayer.js";
-import { RandomPlayer } from "./randomPlayer.js";
-export class TicTacToe {
+import MachinePlayer from "./machinePlayer.js";
+import RandomPlayer from "./randomPlayer.js";
+export default class TicTacToe {
     constructor() {
         this.winningMessageDiv = document.getElementById("winning-message");
         this.winningMessageText = document.querySelector("[data-winning-message-text]");
@@ -37,36 +37,34 @@ export class TicTacToe {
             pos = this.rdPlayer.select();
         if (pos instanceof Array) {
             this.virtualBoard[pos[0]][pos[1]] = playMark;
-            if (this.mover === 1 && opponent === "random")
+            if (this.mover === 1 && opponent === "random") {
                 this.rdPlayer.updateChoices(pos);
+            }
             else
                 this.player.moveWithOpponent(this.virtualBoard);
         }
     }
     judge() {
-        let winner = "";
-        let hasWinner = false;
+        let winner = null;
         // Check each row
         for (let i = 0; i < this.virtualBoard.length; i++) {
-            hasWinner = this.virtualBoard[i].every((e) => e === this.virtualBoard[i][0] &&
-                this.virtualBoard[i][0] !== " ");
-            if (hasWinner) {
+            if (this.virtualBoard[i].every((e) => e === this.virtualBoard[i][0] &&
+                this.virtualBoard[i][0] !== " ")) {
                 winner = this.virtualBoard[i][0];
                 break;
             }
         }
-        if (!hasWinner) {
+        if (winner === null) {
             // Check each column
             for (let i = 0; i < this.virtualBoard[0].length; i++) {
-                hasWinner = this.virtualBoard.every((eachRow) => eachRow[i] === this.virtualBoard[0][i] &&
-                    this.virtualBoard[0][i] !== " ");
-                if (hasWinner) {
+                if (this.virtualBoard.every((eachRow) => eachRow[i] === this.virtualBoard[0][i] &&
+                    this.virtualBoard[0][i] !== " ")) {
                     winner = this.virtualBoard[0][i];
                     break;
                 }
             }
         }
-        if (!hasWinner) {
+        if (winner === null) {
             // Check each diagnal
             let diagnal1 = [
                 this.virtualBoard[0][0],
@@ -80,17 +78,15 @@ export class TicTacToe {
             ];
             if (diagnal1.every((e) => e === diagnal1[0] && diagnal1[0] !== " ")) {
                 winner = diagnal1[0];
-                hasWinner = true;
             }
             else if (diagnal2.every((e) => e === diagnal2[0] && diagnal2[0] !== " ")) {
                 winner = diagnal2[0];
-                hasWinner = true;
             }
         }
-        if (hasWinner) {
+        if (winner !== null) {
             if (winner === "O")
                 this.p1Win++;
-            else if (winner === "X")
+            else
                 this.p2Win++;
             this.player.backPropagate(winner === "O" ? "firstMoverWin" : "firstMoverLose");
             this.player.clearPath();
@@ -115,13 +111,10 @@ export class TicTacToe {
         this.mover = -1 * this.mover + 3;
     }
     endGameWithHuman(isDraw, winner) {
-        if (this.winningMessageText !== null &&
-            this.winningMessageDiv !== null) {
-            this.winningMessageText.innerHTML = isDraw
-                ? "Draw!"
-                : `${winner} wins!`;
-            this.winningMessageDiv.className = "show";
-        }
+        this.winningMessageText.innerHTML = isDraw
+            ? "Draw!"
+            : `${winner} wins!`;
+        this.winningMessageDiv.className = "show";
     }
     genVirtualBoard() {
         return [
@@ -205,8 +198,9 @@ export class TicTacToe {
     }
     machineMakeMove(machinesMark) {
         let pos = this.player.select(machinesMark);
-        if (pos instanceof Array)
+        if (pos instanceof Array) {
             this.virtualBoard[pos[0]][pos[1]] = machinesMark;
+        }
         return pos;
     }
 }

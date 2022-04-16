@@ -1,5 +1,5 @@
-import { Node } from "./node.js";
-export class MachinePlayer {
+import Node from "./node.js";
+export default class MachinePlayer {
     constructor() {
         this._database = { BBBBBBBBB: new Node(0) };
         this._path = ["BBBBBBBBB"];
@@ -19,8 +19,9 @@ export class MachinePlayer {
     }
     translateHashToMove(hashBefore, hashAfter) {
         for (let i = 0; i < hashBefore.length; i++) {
-            if (hashBefore[i] !== hashAfter[i])
+            if (hashBefore[i] !== hashAfter[i]) {
                 return [Math.floor(i / 3), i % 3];
+            }
         }
         throw "something wrong!";
     }
@@ -50,8 +51,9 @@ export class MachinePlayer {
         this._path.push(hashVal);
     }
     moveWithOpponent(board) {
-        if (this.isExternal(this._path[this._path.length - 1]))
+        if (this.isExternal(this._path[this._path.length - 1])) {
             this.expand("opponent");
+        }
         this.updatePath(this.calcHashVal(board));
     }
     clearPath() {
@@ -106,11 +108,11 @@ export class MachinePlayer {
         for (let eachHashVal of this._path)
             this._database[eachHashVal].value = null;
         if (state == "firstMoverWin")
-            currentNode.value =
-                100 / depth; // Using the less steps to win, the better.
+            currentNode.value = 100 / depth;
+        // Using the less steps to win, the better.
         else if (state == "firstMoverLose")
-            currentNode.value =
-                -100 / depth; // Using the more steps to lose, the better.
+            currentNode.value = -100 / depth;
+        // Using the more steps to lose, the better.
         else if (state == "tie")
             currentNode.value = 0; // Use minimax to re-fill in all the values that's been set to null.
     }

@@ -1,4 +1,5 @@
-export class RandomPlayer {
+import Player from "./player";
+export default class RandomPlayer implements Player {
     private _allChoices: [number, number][];
     private _availableChoices: [number, number][];
     public constructor(initChoices: [number, number][]) {

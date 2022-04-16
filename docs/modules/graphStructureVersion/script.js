@@ -1,4 +1,4 @@
-import { TicTacToe } from "./trainField.js";
+import TicTacToe from "./trainField.js";
 const game = new TicTacToe();
 const controlBar = document.getElementById("control-bar");
 const restartBtn = document.getElementById("restart-btn");
@@ -24,35 +24,29 @@ const winningCombinations = [
     [0, 4, 8],
     [2, 4, 6],
 ];
-multiplayerBtn === null || multiplayerBtn === void 0 ? void 0 : multiplayerBtn.addEventListener("click", multiplayerMode);
-naiveMachineBtn === null || naiveMachineBtn === void 0 ? void 0 : naiveMachineBtn.addEventListener("click", (e) => {
+multiplayerBtn.addEventListener("click", multiplayerMode);
+naiveMachineBtn.addEventListener("click", (e) => {
     singlePlayerMode(e, false);
 });
-trainedMachineBtn === null || trainedMachineBtn === void 0 ? void 0 : trainedMachineBtn.addEventListener("click", (e) => {
+trainedMachineBtn.addEventListener("click", (e) => {
     singlePlayerMode(e, true);
 });
-reloadBtn === null || reloadBtn === void 0 ? void 0 : reloadBtn.addEventListener("click", (e) => {
+reloadBtn.addEventListener("click", (e) => {
     location.reload();
 });
-restartBtn === null || restartBtn === void 0 ? void 0 : restartBtn.addEventListener("click", (e) => {
+restartBtn.addEventListener("click", (e) => {
     location.reload();
 });
 function disableBtns() {
-    if (trainedMachineBtn instanceof HTMLButtonElement &&
-        multiplayerBtn instanceof HTMLButtonElement &&
-        naiveMachineBtn instanceof HTMLButtonElement &&
-        board !== null &&
-        controlBar instanceof HTMLElement) {
-        multiplayerBtn.disabled = true;
-        naiveMachineBtn.disabled = true;
-        trainedMachineBtn.disabled = true;
-        controlBar.style.bottom = "0";
-    }
+    multiplayerBtn.disabled = true;
+    naiveMachineBtn.disabled = true;
+    trainedMachineBtn.disabled = true;
+    controlBar.style.bottom = "0";
 }
 function singlePlayerMode(e, shouldTrain) {
     disableBtns();
     setTimeout(() => {
-        board === null || board === void 0 ? void 0 : board.classList.add("show");
+        board.classList.add("show");
         mode = "single";
         if (shouldTrain)
             game.trainMachine(50000, 5000, "random");
@@ -80,44 +74,42 @@ function machineMakeMove() {
     }
     game.judge();
     // Human's turn
-    board === null || board === void 0 ? void 0 : board.classList.replace(singleModeMachineMark, singleModeHumanMark);
+    board.classList.replace(singleModeMachineMark, singleModeHumanMark);
 }
 function multiplayerMode() {
     disableBtns();
-    board === null || board === void 0 ? void 0 : board.classList.add("show");
+    board.classList.add("show");
     mode = "multi";
     setupGameBoard();
 }
 function setupGameBoard() {
-    if (board !== null && winningMessageDiv !== null) {
-        board.classList.remove("X");
-        board.classList.remove("O");
-        board.classList.add("O");
-        if (mode == "single") {
-            cellDivs.forEach((each) => {
-                each.classList.remove("O");
-                each.classList.remove("X");
-                each.removeEventListener("click", handleClickSingle);
-                each.removeEventListener("click", handleClickMulti);
-                each.addEventListener("click", handleClickSingle, {
-                    once: true,
-                });
+    board.classList.remove("X");
+    board.classList.remove("O");
+    board.classList.add("O");
+    if (mode == "single") {
+        cellDivs.forEach((each) => {
+            each.classList.remove("O");
+            each.classList.remove("X");
+            each.removeEventListener("click", handleClickSingle);
+            each.removeEventListener("click", handleClickMulti);
+            each.addEventListener("click", handleClickSingle, {
+                once: true,
             });
-        }
-        else {
-            xTurn = false;
-            cellDivs.forEach((each) => {
-                each.classList.remove("O");
-                each.classList.remove("X");
-                each.removeEventListener("click", handleClickMulti);
-                each.removeEventListener("click", handleClickSingle);
-                each.addEventListener("click", handleClickMulti, {
-                    once: true,
-                });
-            });
-        }
-        winningMessageDiv.className = "";
+        });
     }
+    else {
+        xTurn = false;
+        cellDivs.forEach((each) => {
+            each.classList.remove("O");
+            each.classList.remove("X");
+            each.removeEventListener("click", handleClickMulti);
+            each.removeEventListener("click", handleClickSingle);
+            each.addEventListener("click", handleClickMulti, {
+                once: true,
+            });
+        });
+    }
+    winningMessageDiv.className = "";
 }
 function handleClickSingle(e) {
     if (e.currentTarget instanceof HTMLElement) {
@@ -130,7 +122,7 @@ function handleClickSingle(e) {
         game.player.moveWithOpponent(game.virtualBoard);
         game.judge();
         // Machine's turn
-        board === null || board === void 0 ? void 0 : board.classList.replace(singleModeHumanMark, singleModeMachineMark);
+        board.classList.replace(singleModeHumanMark, singleModeMachineMark);
         if (game.gameRunning)
             machineMakeMove();
     }
@@ -163,18 +155,16 @@ function isDraw() {
     });
 }
 function multiplayerEndGame(isDraw) {
-    if (winningMessageText !== null && winningMessageDiv !== null) {
-        if (isDraw)
-            winningMessageText.innerHTML = "Draw!";
-        else
-            winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
-        winningMessageDiv.className = "show";
-    }
+    if (isDraw)
+        winningMessageText.innerHTML = "Draw!";
+    else
+        winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
+    winningMessageDiv.className = "show";
 }
 function swapTurn(currentPlayer) {
     if (currentPlayer == "O")
-        board === null || board === void 0 ? void 0 : board.classList.replace("O", "X");
+        board.classList.replace("O", "X");
     else
-        board === null || board === void 0 ? void 0 : board.classList.replace("X", "O");
+        board.classList.replace("X", "O");
     xTurn = !xTurn;
 }
