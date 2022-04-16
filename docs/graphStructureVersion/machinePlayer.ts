@@ -22,7 +22,7 @@ export default class MachinePlayer implements Player {
         }
         return hashVal;
     }
-    private translateHashToMove(
+    private translateHashDiffToMove(
         hashBefore: string,
         hashAfter: string
     ): [number, number] {
@@ -98,7 +98,7 @@ export default class MachinePlayer implements Player {
         }
         let pos: [number, number];
         if (typeof bestNextHash === "string") {
-            pos = this.translateHashToMove(currentHashVal, bestNextHash);
+            pos = this.translateHashDiffToMove(currentHashVal, bestNextHash);
             this.updatePath(bestNextHash);
         } else throw "no bestNextHash was found";
         return pos;
@@ -139,7 +139,6 @@ export default class MachinePlayer implements Player {
         else if (state === "firstMoverLose") currentNode.value = -100 / depth;
         else if (state === "tie") currentNode.value = 0;
     }
-
     private hasNullValueChild(aListOfHashes: string[]): {
         hasNullChild: boolean;
         nullIdxList: number[];

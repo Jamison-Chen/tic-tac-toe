@@ -20,7 +20,7 @@ export default class MachinePlayer {
         }
         return hashVal;
     }
-    translateHashToMove(hashBefore, hashAfter) {
+    translateHashDiffToMove(hashBefore, hashAfter) {
         for (let i = 0; i < hashBefore.length; i++) {
             if (hashBefore[i] !== hashAfter[i]) {
                 return [Math.floor(i / 3), i % 3];
@@ -85,7 +85,7 @@ export default class MachinePlayer {
         }
         let pos;
         if (typeof bestNextHash === "string") {
-            pos = this.translateHashToMove(currentHashVal, bestNextHash);
+            pos = this.translateHashDiffToMove(currentHashVal, bestNextHash);
             this.updatePath(bestNextHash);
         }
         else
