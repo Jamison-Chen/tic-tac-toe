@@ -1,7 +1,18 @@
 export default class RandomPlayer {
-    constructor(initChoices) {
+    constructor(initChoices = [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [2, 0],
+        [2, 1],
+        [2, 2],
+    ]) {
         this._allChoices = initChoices;
         this._availableChoices = this._allChoices;
+        this.playMark = null;
     }
     resetChoices() {
         this._availableChoices = this._allChoices;

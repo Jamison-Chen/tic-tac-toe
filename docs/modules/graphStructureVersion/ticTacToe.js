@@ -5,39 +5,39 @@ export default class TicTacToe {
     constructor() {
         this.winningMessageDiv = document.getElementById("winning-message");
         this.winningMessageText = document.querySelector("[data-winning-message-text]");
-        this.virtualBoard = this.genVirtualBoard();
+        this.board = this.initBoard();
         this.gameRunning = true;
-        this.mover = 0;
-        this.p1Start = 0;
-        this.p2Start = 0;
+        this.currentMover = 0;
+        this.p1StartCount = 0;
+        this.p2StartCount = 0;
         this.totalGames = 0;
-        this.p1Win = 0;
-        this.p2Win = 0;
-        this.tie = 0;
+        this.p1WinCount = 0;
+        this.p2WinCount = 0;
+        this.tieCount = 0;
     }
     playerMakeMove(playerInTurn, opponent) {
-        let playMark = this.mover === 1 ? "O" : "X";
+        let playMark = this.currentMover === 1 ? "O" : "X";
         let pos;
-        pos = playerInTurn.select(playMark);
-        this.virtualBoard[pos[0]][pos[1]] = playMark;
-        opponent.moveWithOpponent(pos, this.virtualBoard);
+        playerInTurn.playMark = playMark;
+        pos = playerInTurn.select();
+        this.board[pos[0]][pos[1]] = playMark;
+        opponent.moveWithOpponent(pos, this.board);
     }
     judge() {
         let winner = null;
         // Check each row
-        for (let i = 0; i < this.virtualBoard.length; i++) {
-            if (this.virtualBoard[i].every((e) => e === this.virtualBoard[i][0] &&
-                this.virtualBoard[i][0] !== " ")) {
-                winner = this.virtualBoard[i][0];
+        for (let i = 0; i < this.board.length; i++) {
+            if (this.board[i].every((e) => e === this.board[i][0] && this.board[i][0] !== " ")) {
+                winner = this.board[i][0];
                 break;
             }
         }
         if (winner === null) {
             // Check each column
-            for (let i = 0; i < this.virtualBoard[0].length; i++) {
-                if (this.virtualBoard.every((eachRow) => eachRow[i] === this.virtualBoard[0][i] &&
-                    this.virtualBoard[0][i] !== " ")) {
-                    winner = this.virtualBoard[0][i];
+            for (let i = 0; i < this.board[0].length; i++) {
+                if (this.board.every((eachRow) => eachRow[i] === this.board[0][i] &&
+                    this.board[0][i] !== " ")) {
+                    winner = this.board[0][i];
                     break;
                 }
             }
@@ -45,14 +45,14 @@ export default class TicTacToe {
         if (winner === null) {
             // Check each diagnal
             let diagnal1 = [
-                this.virtualBoard[0][0],
-                this.virtualBoard[1][1],
-                this.virtualBoard[2][2],
+                this.board[0][0],
+                this.board[1][1],
+                this.board[2][2],
             ];
             let diagnal2 = [
-                this.virtualBoard[0][2],
-                this.virtualBoard[1][1],
-                this.virtualBoard[2][0],
+                this.board[0][2],
+                this.board[1][1],
+                this.board[2][0],
             ];
             if (diagnal1.every((e) => e === diagnal1[0] && diagnal1[0] !== " ")) {
                 winner = diagnal1[0];
@@ -63,9 +63,9 @@ export default class TicTacToe {
         }
         if (winner !== null) {
             if (winner === "O")
-                this.p1Win++;
+                this.p1WinCount++;
             else
-                this.p2Win++;
+                this.p2WinCount++;
             if (this.player1 instanceof MachinePlayer) {
                 this.player1.backPropagate(winner === "O" ? "firstMoverWin" : "firstMoverLose");
                 this.player1.clearPath();
@@ -89,8 +89,8 @@ export default class TicTacToe {
             this.gameRunning = false;
             this.totalGames++;
         }
-        else if (!this.virtualBoard.some((r) => r.some((e) => e === " "))) {
-            this.tie++;
+        else if (!this.board.some((r) => r.some((e) => e === " "))) {
+            this.tieCount++;
             if (this.player1 instanceof MachinePlayer) {
                 this.player1.backPropagate("tie");
                 this.player1.clearPath();
@@ -114,7 +114,7 @@ export default class TicTacToe {
             this.gameRunning = false;
             this.totalGames++;
         }
-        this.mover = -1 * this.mover + 3;
+        this.currentMover = -1 * this.currentMover + 3;
     }
     endGameWithHuman(isDraw, winner) {
         this.winningMessageText.innerHTML = isDraw
@@ -122,7 +122,7 @@ export default class TicTacToe {
             : `${winner} wins!`;
         this.winningMessageDiv.className = "show";
     }
-    genVirtualBoard() {
+    initBoard() {
         return [
             [" ", " ", " "],
             [" ", " ", " "],
@@ -131,38 +131,38 @@ export default class TicTacToe {
     }
     decideFirstMover() {
         if (this.player2 instanceof RandomPlayer)
-            this.mover = 1;
+            this.currentMover = 1;
         else
-            this.mover = Math.floor(Math.random() * 2 + 1);
+            this.currentMover = Math.floor(Math.random() * 2 + 1);
     }
     recordFirstMover() {
-        if (this.mover === 1)
-            this.p1Start++;
+        if (this.currentMover === 1)
+            this.p1StartCount++;
         else
-            this.p2Start++;
+            this.p2StartCount++;
     }
-    newGame() {
+    prepare() {
         this.gameRunning = true;
-        this.virtualBoard = this.genVirtualBoard();
+        this.board = this.initBoard();
         this.decideFirstMover();
         this.recordFirstMover();
     }
-    play(playTimes, p1, p2, isTraining) {
+    startGame(p1, p2, playTimes = 1, isTraining = false) {
         this.player1 = p1;
         this.player2 = p2;
-        this.refreshTrainStat();
-        this.newGame();
+        this.resetTrainResult();
+        this.prepare();
         if (isTraining) {
             // This loop is only designed for training.
             while (this.gameRunning) {
-                if (this.mover === 1) {
+                if (this.currentMover === 1) {
                     this.playerMakeMove(this.player1, this.player2);
                     this.judge();
                     if (this.totalGames === playTimes)
                         break;
                     if (!this.gameRunning) {
-                        this.newGame();
-                        if (this.mover === 1)
+                        this.prepare();
+                        if (this.currentMover === 1)
                             continue;
                     }
                 }
@@ -171,7 +171,7 @@ export default class TicTacToe {
                 if (this.totalGames === playTimes)
                     break;
                 if (!this.gameRunning)
-                    this.newGame();
+                    this.prepare();
             }
         }
     }
@@ -179,28 +179,28 @@ export default class TicTacToe {
         let epoch = Math.floor(trainTimes / batch);
         let remainder = trainTimes % batch;
         for (let i = 0; i < epoch; i++) {
-            this.play(batch, trainee, trainer, true);
+            this.startGame(trainee, trainer, batch, true);
             this.printTrainResult();
         }
         if (remainder !== 0) {
-            this.play(remainder, trainee, trainer, true);
+            this.startGame(trainee, trainer, remainder, true);
             this.printTrainResult();
         }
     }
     printTrainResult() {
-        console.log(`Game start with P1: ${this.p1Start} / P2: ${this.p2Start}`);
-        let p1WinningRate = Math.round((this.p1Win / this.totalGames) * 10000) / 100;
-        let p2WinningRate = Math.round((this.p2Win / this.totalGames) * 10000) / 100;
-        let tieRate = Math.round((this.tie / this.totalGames) * 10000) / 100;
+        console.log(`Game start with P1: ${this.p1StartCount} / P2: ${this.p2StartCount}`);
+        let p1WinningRate = Math.round((this.p1WinCount / this.totalGames) * 10000) / 100;
+        let p2WinningRate = Math.round((this.p2WinCount / this.totalGames) * 10000) / 100;
+        let tieRate = Math.round((this.tieCount / this.totalGames) * 10000) / 100;
         console.log(`P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${tieRate}%`);
         this.player1.printDatabaseInfo();
     }
-    refreshTrainStat() {
-        this.p1Start = 0;
-        this.p2Start = 0;
+    resetTrainResult() {
+        this.p1StartCount = 0;
+        this.p2StartCount = 0;
         this.totalGames = 0;
-        this.p1Win = 0;
-        this.p2Win = 0;
-        this.tie = 0;
+        this.p1WinCount = 0;
+        this.p2WinCount = 0;
+        this.tieCount = 0;
     }
 }

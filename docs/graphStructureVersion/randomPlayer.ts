@@ -2,9 +2,23 @@ import Player from "./player";
 export default class RandomPlayer implements Player {
     private _allChoices: [number, number][];
     private _availableChoices: [number, number][];
-    public constructor(initChoices: [number, number][]) {
+    public playMark: "O" | "X" | null;
+    public constructor(
+        initChoices: [number, number][] = [
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 0],
+            [1, 1],
+            [1, 2],
+            [2, 0],
+            [2, 1],
+            [2, 2],
+        ]
+    ) {
         this._allChoices = initChoices;
         this._availableChoices = this._allChoices;
+        this.playMark = null;
     }
     public resetChoices(): void {
         this._availableChoices = this._allChoices;

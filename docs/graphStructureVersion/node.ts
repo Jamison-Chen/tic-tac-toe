@@ -1,7 +1,7 @@
 export default class Node {
     private _value: number;
     private _childrenList: string[];
-    public constructor(v: number) {
+    public constructor(v: number = 0) {
         this._value = v;
         this._childrenList = [];
     }

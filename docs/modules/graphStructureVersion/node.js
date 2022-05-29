@@ -1,5 +1,5 @@
 export default class Node {
-    constructor(v) {
+    constructor(v = 0) {
         this._value = v;
         this._childrenList = [];
     }

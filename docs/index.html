@@ -1,36 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="./style.css" />
+        <script
+            type="module"
+            src="./modules/graphStructureVersion/main.js"
+            defer
+        ></script>
+        <title>Tic Tac Toe</title>
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style.css">
-    <script type="module" src="./modules/graphStructureVersion/script.js" defer></script>
-    <title>Tic Tac Toe</title>
-</head>
-
-<body id="body">
-    <div id="main-board" class="">
-        <div id="0,0" class="cell" data-cell></div>
-        <div id="1,0" class="cell" data-cell></div>
-        <div id="2,0" class="cell" data-cell></div>
-        <div id="0,1" class="cell" data-cell></div>
-        <div id="1,1" class="cell" data-cell></div>
-        <div id="2,1" class="cell" data-cell></div>
-        <div id="0,2" class="cell" data-cell></div>
-        <div id="1,2" class="cell" data-cell></div>
-        <div id="2,2" class="cell" data-cell></div>
-    </div>
-    <div id="control-bar">
-        <button class="control-btn" id="multiplayer-btn">Multiplayers</button>
-        <button class="control-btn" id="naive-machine-btn">Naive Computer</button>
-        <button class="control-btn" id="trained-machine-btn">Trained Computer</button>
-        <button class="control-btn" id="reload-btn">Restart</button>
-    </div>
-    <div id="winning-message" class="">
-        <div data-winning-message-text></div>
-        <button id="restart-btn">RESTART</button>
-    </div>
-</body>
-
+    <body id="body">
+        <div id="main-board" class="">
+            <div id="0,0" class="cell" data-cell></div>
+            <div id="1,0" class="cell" data-cell></div>
+            <div id="2,0" class="cell" data-cell></div>
+            <div id="0,1" class="cell" data-cell></div>
+            <div id="1,1" class="cell" data-cell></div>
+            <div id="2,1" class="cell" data-cell></div>
+            <div id="0,2" class="cell" data-cell></div>
+            <div id="1,2" class="cell" data-cell></div>
+            <div id="2,2" class="cell" data-cell></div>
+        </div>
+        <div id="control-bar">
+            <button class="control-btn" id="multiplayer-btn">
+                Multiplayers
+            </button>
+            <button class="control-btn" id="naive-machine-btn">
+                Naive Computer
+            </button>
+            <button class="control-btn" id="trained-machine-btn">
+                Trained Computer
+            </button>
+            <button class="control-btn" id="reload-btn">Restart</button>
+        </div>
+        <div id="winning-message" class="">
+            <div data-winning-message-text></div>
+            <button id="restart-btn">RESTART</button>
+        </div>
+    </body>
 </html>

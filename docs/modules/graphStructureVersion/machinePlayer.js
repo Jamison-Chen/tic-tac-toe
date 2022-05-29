@@ -1,13 +1,27 @@
 import Node from "./node.js";
 export default class MachinePlayer {
     constructor() {
-        this._database = { BBBBBBBBB: new Node(0) };
+        this._database = { BBBBBBBBB: new Node() };
         this._path = ["BBBBBBBBB"];
-        this.myMark = "";
+        this.playMark = null;
     }
-    get database() {
-        return this._database;
-    }
+    // private isKeyInDB(key: string): boolean {
+    //     if (this.getEquivalentKeyInDB(key) === null) return false;
+    //     return true;
+    // }
+    // private getEquivalentKeyInDB(key: string): string | null {
+    //     for (let i = 0; i < 4; i++) {
+    //         key = this.rotateKey(key);
+    //         if (key in this._database) return key;
+    //     }
+    //     return null;
+    // }
+    // private rotateKey(key: string): string {
+    //     let newOrder = [2, 5, 8, 1, 4, 7, 0, 3, 6];
+    //     let newKey = "";
+    //     for (let idx of newOrder) newKey += key[idx];
+    //     return newKey;
+    // }
     calcHashVal(board) {
         let hashVal = "";
         for (let i = 0; i < board.length; i++) {
@@ -32,13 +46,13 @@ export default class MachinePlayer {
         let allPosiibility = [];
         for (let i = 0; i < currentHashVal.length; i++) {
             if (currentHashVal[i] === "B") {
-                if (forWhom === "mySelf") {
+                if (forWhom === "self") {
                     allPosiibility.push(currentHashVal.slice(0, i) +
-                        this.myMark +
+                        this.playMark +
                         currentHashVal.slice(i + 1));
                 }
                 else {
-                    let opponentMark = this.myMark === "O" ? "X" : "O";
+                    let opponentMark = this.playMark === "O" ? "X" : "O";
                     allPosiibility.push(currentHashVal.slice(0, i) +
                         opponentMark +
                         currentHashVal.slice(i + 1));
@@ -68,14 +82,13 @@ export default class MachinePlayer {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-    select(myMark) {
-        this.myMark = myMark;
+    select() {
         let currentHashVal = this._path[this._path.length - 1];
         if (this.isExternal(currentHashVal))
-            this.expand("mySelf");
+            this.expand("self");
         let currentNode = this._database[currentHashVal];
         this.shuffle(currentNode.childrenList);
-        this.evalValByMinimax(this._database[currentHashVal], myMark === "O");
+        this._database[currentHashVal].value = this.evaluateByMinimax(this._database[currentHashVal], this.playMark === "O");
         let bestNextHash;
         for (let eachChildHash of currentNode.childrenList) {
             if (this._database[eachChildHash].value === currentNode.value) {
@@ -99,7 +112,7 @@ export default class MachinePlayer {
             this._database[this._path[this._path.length - 1]].appendChild(each);
             if (this._database[each] === undefined ||
                 this._database[each] === null) {
-                this._database[each] = new Node(0);
+                this._database[each] = new Node();
             }
         }
         this.backPropagate("forExpansion");
@@ -135,12 +148,13 @@ export default class MachinePlayer {
             nullIdxList: nullIdxList,
         };
     }
-    evalValByMinimax(nodeEvaluated, isMaximizer) {
+    evaluateByMinimax(nodeEvaluated, isMaximizer) {
         let currentChildrenList = nodeEvaluated.childrenList;
         let aboutThisNode = this.hasNullValueChild(currentChildrenList);
         if (aboutThisNode["hasNullChild"]) {
             for (let i of aboutThisNode["nullIdxList"]) {
-                this.evalValByMinimax(this._database[currentChildrenList[i]], !isMaximizer);
+                this._database[currentChildrenList[i]].value =
+                    this.evaluateByMinimax(this._database[currentChildrenList[i]], !isMaximizer);
             }
         }
         let childrenValueList = [];
@@ -162,7 +176,7 @@ export default class MachinePlayer {
         let v = isMaximizer
             ? childrenValueList.sort(descendingSort)[0]
             : childrenValueList.sort(ascendingSort)[0];
-        nodeEvaluated.value = v;
+        return v;
     }
     printDatabaseInfo() {
         console.log(`Database size: ${Object.keys(this._database).length}`);

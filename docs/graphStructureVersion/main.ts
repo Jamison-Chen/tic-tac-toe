@@ -3,21 +3,6 @@ import MachinePlayer from "./machinePlayer.js";
 import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 
-const game: TicTacToe = new TicTacToe();
-
-let machinePlayer: MachinePlayer;
-let randomPlayer = new RandomPlayer([
-    [0, 0],
-    [0, 1],
-    [0, 2],
-    [1, 0],
-    [1, 1],
-    [1, 2],
-    [2, 0],
-    [2, 1],
-    [2, 2],
-]);
-
 const controlBar: HTMLElement = document.getElementById(
     "control-bar"
 ) as HTMLElement;
@@ -45,11 +30,13 @@ const winningMessageText: HTMLElement = document.querySelector(
     "[data-winning-message-text]"
 ) as HTMLElement;
 
+const game: TicTacToe = new TicTacToe();
+let machinePlayer = new MachinePlayer();
+let randomPlayer = new RandomPlayer();
 let xTurn: boolean;
 let mode: "single" | "multi";
 let singleModeHumanMark: "O" | "X";
 let singleModeMachineMark: "O" | "X";
-
 const winningCombinations: number[][] = [
     [0, 1, 2],
     [3, 4, 5],
@@ -62,34 +49,22 @@ const winningCombinations: number[][] = [
 ];
 
 multiplayerBtn.addEventListener("click", () => startMultiplayerMode());
-naiveMachineBtn.addEventListener("click", (e) =>
-    startSinglePlayerMode(e, false)
-);
-trainedMachineBtn.addEventListener("click", (e) =>
-    startSinglePlayerMode(e, true)
-);
-reloadBtn.addEventListener("click", (e) => location.reload());
-restartBtn.addEventListener("click", (e) => location.reload());
+naiveMachineBtn.addEventListener("click", () => startSinglePlayerMode(false));
+trainedMachineBtn.addEventListener("click", () => startSinglePlayerMode(true));
+reloadBtn.addEventListener("click", () => location.reload());
+restartBtn.addEventListener("click", () => location.reload());
 
-function disableBtns(): void {
-    multiplayerBtn.disabled = true;
-    naiveMachineBtn.disabled = true;
-    trainedMachineBtn.disabled = true;
-    controlBar.style.bottom = "0";
-}
-
-function startSinglePlayerMode(e: Event, shouldTrain: boolean): void {
+function startSinglePlayerMode(shouldTrain: boolean): void {
     disableBtns();
     setTimeout(() => {
         board.classList.add("show");
         mode = "single";
-        machinePlayer = new MachinePlayer();
         if (shouldTrain) {
             game.trainMachine(20000, 2000, machinePlayer, randomPlayer);
         }
         setupGameBoard();
-        game.play(1, machinePlayer, new HumanPlayer(), false);
-        if (game.mover === 1) {
+        game.startGame(machinePlayer, new HumanPlayer());
+        if (game.currentMover === 1) {
             singleModeHumanMark = "X";
             singleModeMachineMark = "O";
             machineMakeMove(machinePlayer);
@@ -100,12 +75,20 @@ function startSinglePlayerMode(e: Event, shouldTrain: boolean): void {
     });
 }
 
+function disableBtns(): void {
+    multiplayerBtn.disabled = true;
+    naiveMachineBtn.disabled = true;
+    trainedMachineBtn.disabled = true;
+    controlBar.style.bottom = "0";
+}
+
 function machineMakeMove(machinePlayer: MachinePlayer): void {
-    let pos = machinePlayer.select(singleModeMachineMark);
-    game.virtualBoard[pos[0]][pos[1]] = singleModeMachineMark;
+    machinePlayer.playMark = singleModeMachineMark;
+    let pos = machinePlayer.select();
+    game.board[pos[0]][pos[1]] = singleModeMachineMark;
     const aCell = document.getElementById(`${pos[0]},${pos[1]}`) as HTMLElement;
     placeMark(aCell, singleModeMachineMark);
-    aCell.removeEventListener("click", handleClickSingle);
+    aCell.removeEventListener("click", singleModeClickCellListener);
     game.judge();
 
     // Human's turn
@@ -119,17 +102,17 @@ function startMultiplayerMode(): void {
     setupGameBoard();
 }
 
+// Game always starts with "O"
 function setupGameBoard(): void {
     board.classList.remove("X");
-    board.classList.remove("O");
     board.classList.add("O");
     if (mode === "single") {
         cellDivs.forEach((each) => {
             each.classList.remove("O");
             each.classList.remove("X");
-            each.removeEventListener("click", handleClickSingle);
-            each.removeEventListener("click", handleClickMulti);
-            each.addEventListener("click", handleClickSingle, {
+            each.removeEventListener("click", singleModeClickCellListener);
+            each.removeEventListener("click", multiModeClickCellListener);
+            each.addEventListener("click", singleModeClickCellListener, {
                 once: true,
             });
         });
@@ -138,9 +121,9 @@ function setupGameBoard(): void {
         cellDivs.forEach((each) => {
             each.classList.remove("O");
             each.classList.remove("X");
-            each.removeEventListener("click", handleClickMulti);
-            each.removeEventListener("click", handleClickSingle);
-            each.addEventListener("click", handleClickMulti, {
+            each.removeEventListener("click", multiModeClickCellListener);
+            each.removeEventListener("click", singleModeClickCellListener);
+            each.addEventListener("click", multiModeClickCellListener, {
                 once: true,
             });
         });
@@ -148,15 +131,15 @@ function setupGameBoard(): void {
     winningMessageDiv.className = "";
 }
 
-function handleClickSingle(e: Event): void {
+function singleModeClickCellListener(e: Event): void {
     if (e.currentTarget instanceof HTMLElement) {
         placeMark(e.currentTarget, singleModeHumanMark);
         let pos: [number, number] = [
             parseInt(e.currentTarget.id.split(",")[0]),
             parseInt(e.currentTarget.id.split(",")[1]),
         ];
-        game.virtualBoard[pos[0]][pos[1]] = singleModeHumanMark;
-        machinePlayer.moveWithOpponent(pos, game.virtualBoard);
+        game.board[pos[0]][pos[1]] = singleModeHumanMark;
+        machinePlayer.moveWithOpponent(pos, game.board);
         game.judge();
         board.classList.replace(singleModeHumanMark, singleModeMachineMark);
 
@@ -165,24 +148,22 @@ function handleClickSingle(e: Event): void {
     }
 }
 
-function handleClickMulti(e: Event): void {
-    if (e.currentTarget instanceof HTMLElement) {
-        const currentPlayer = xTurn ? "X" : "O";
-        placeMark(e.currentTarget, currentPlayer);
-        if (hasWinner(currentPlayer)) multiplayerEndGame(false);
-        else if (isDraw()) multiplayerEndGame(true);
-        else swapTurn(currentPlayer);
-    }
+function multiModeClickCellListener(e: Event): void {
+    let playMark: "O" | "X" = xTurn ? "X" : "O";
+    placeMark(e.currentTarget as HTMLElement, playMark);
+    if (hasWinner(playMark)) multiplayerEndGame(false);
+    else if (isDraw()) multiplayerEndGame(true);
+    else swapTurn(playMark);
 }
 
-function placeMark(cell: HTMLElement, currentPlayer: string): void {
-    cell.classList.add(currentPlayer);
+function placeMark(cell: HTMLElement, playMark: string): void {
+    cell.classList.add(playMark);
 }
 
-function hasWinner(currentPlayer: string): boolean {
+function hasWinner(playMark: "O" | "X"): boolean {
     return winningCombinations.some((each) => {
         return each.every((i) => {
-            return cellDivs[i].classList.contains(currentPlayer);
+            return cellDivs[i].classList.contains(playMark);
         });
     });
 }
@@ -199,8 +180,8 @@ function multiplayerEndGame(isDraw: boolean): void {
     winningMessageDiv.className = "show";
 }
 
-function swapTurn(currentPlayer: string): void {
-    if (currentPlayer === "O") board.classList.replace("O", "X");
+function swapTurn(playMark: string): void {
+    if (playMark === "O") board.classList.replace("O", "X");
     else board.classList.replace("X", "O");
     xTurn = !xTurn;
 }
