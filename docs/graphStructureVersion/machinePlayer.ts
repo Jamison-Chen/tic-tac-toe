@@ -1,14 +1,17 @@
 import Node from "./node.js";
 import Player from "./player.js";
+import { Cell, MovePositionEvent } from "./ticTacToe.js";
 
 export default class MachinePlayer implements Player {
-    private _path: string[];
-    private _database: any;
-    public playMark: "O" | "X" | null;
+    private path: string[];
+    private database: any;
+    public markPlaying: "O" | "X" | null;
+    public winCount: number;
     public constructor() {
-        this._database = { BBBBBBBBB: new Node() };
-        this._path = ["BBBBBBBBB"];
-        this.playMark = null;
+        this.database = { BBBBBBBBB: new Node() };
+        this.path = ["BBBBBBBBB"];
+        this.markPlaying = null;
+        this.winCount = 0;
     }
     // private isKeyInDB(key: string): boolean {
     //     if (this.getEquivalentKeyInDB(key) === null) return false;
@@ -17,7 +20,7 @@ export default class MachinePlayer implements Player {
     // private getEquivalentKeyInDB(key: string): string | null {
     //     for (let i = 0; i < 4; i++) {
     //         key = this.rotateKey(key);
-    //         if (key in this._database) return key;
+    //         if (key in this.database) return key;
     //     }
     //     return null;
     // }
@@ -27,12 +30,12 @@ export default class MachinePlayer implements Player {
     //     for (let idx of newOrder) newKey += key[idx];
     //     return newKey;
     // }
-    private calcHashVal(board: (" " | "X" | "O")[][]): string {
-        let hashVal = "";
-        for (let i = 0; i < board.length; i++) {
-            for (let j = 0; j < board[i].length; j++) {
-                if (board[i][j] === " ") hashVal += "B";
-                else hashVal += board[i][j];
+    private calcHashVal(board: Cell[][]): string {
+        let hashVal: string = "";
+        for (let r = 0; r < board.length; r++) {
+            for (let c = 0; c < board[r].length; c++) {
+                if (board[r][c].mark === " ") hashVal += "B";
+                else hashVal += board[r][c].mark;
             }
         }
         return hashVal;
@@ -58,11 +61,11 @@ export default class MachinePlayer implements Player {
                 if (forWhom === "self") {
                     allPosiibility.push(
                         currentHashVal.slice(0, i) +
-                            this.playMark +
+                            this.markPlaying +
                             currentHashVal.slice(i + 1)
                     );
                 } else {
-                    let opponentMark = this.playMark === "O" ? "X" : "O";
+                    let opponentMark = this.markPlaying === "O" ? "X" : "O";
                     allPosiibility.push(
                         currentHashVal.slice(0, i) +
                             opponentMark +
@@ -74,22 +77,22 @@ export default class MachinePlayer implements Player {
         return allPosiibility;
     }
     private isExternal(hashVal: string): boolean {
-        return this._database[hashVal].childrenList.length === 0;
+        return this.database[hashVal].childrenList.length === 0;
     }
     private updatePath(hashVal: string): void {
-        this._path.push(hashVal);
+        this.path.push(hashVal);
     }
     public moveWithOpponent(
         position: [number, number],
-        latestBoard: (" " | "X" | "O")[][]
+        latestBoard: Cell[][]
     ): void {
-        if (this.isExternal(this._path[this._path.length - 1])) {
+        if (this.isExternal(this.path[this.path.length - 1])) {
             this.expand("opponent");
         }
         this.updatePath(this.calcHashVal(latestBoard));
     }
     public clearPath(): void {
-        this._path = ["BBBBBBBBB"];
+        this.path = ["BBBBBBBBB"];
     }
     private shuffle(array: any[]) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -98,41 +101,51 @@ export default class MachinePlayer implements Player {
         }
     }
     public select(): [number, number] {
-        let currentHashVal = this._path[this._path.length - 1];
+        let currentHashVal = this.path[this.path.length - 1];
         if (this.isExternal(currentHashVal)) this.expand("self");
-        let currentNode = this._database[currentHashVal];
+        let currentNode = this.database[currentHashVal];
         this.shuffle(currentNode.childrenList);
-        this._database[currentHashVal].value = this.evaluateByMinimax(
-            this._database[currentHashVal],
-            this.playMark === "O"
+        this.database[currentHashVal].value = this.evaluateByMinimax(
+            this.database[currentHashVal],
+            this.markPlaying === "O"
         );
         let bestNextHash: string | undefined;
         for (let eachChildHash of currentNode.childrenList) {
-            if (this._database[eachChildHash].value === currentNode.value) {
+            if (this.database[eachChildHash].value === currentNode.value) {
                 bestNextHash = eachChildHash;
                 break;
             }
         }
-        let pos: [number, number];
+        let position: [number, number];
         if (typeof bestNextHash === "string") {
-            pos = this.translateHashDiffToMove(currentHashVal, bestNextHash);
+            position = this.translateHashDiffToMove(
+                currentHashVal,
+                bestNextHash
+            );
             this.updatePath(bestNextHash);
         } else throw "no bestNextHash was found";
-        return pos;
+        setTimeout(() => {
+            document.dispatchEvent(
+                new CustomEvent<MovePositionEvent>("move", {
+                    detail: { position, markPlaying: this.markPlaying! },
+                })
+            );
+        });
+        return position;
     }
     private expand(forWhom: "self" | "opponent"): void {
-        let currentHashVal = this._path[this._path.length - 1];
+        let currentHashVal = this.path[this.path.length - 1];
         let allPossibleNextStateHash = this.genAllPossibleNextStateHash(
             currentHashVal,
             forWhom
         );
         for (let each of allPossibleNextStateHash) {
-            this._database[this._path[this._path.length - 1]].appendChild(each);
+            this.database[this.path[this.path.length - 1]].appendChild(each);
             if (
-                this._database[each] === undefined ||
-                this._database[each] === null
+                this.database[each] === undefined ||
+                this.database[each] === null
             ) {
-                this._database[each] = new Node();
+                this.database[each] = new Node();
             }
         }
         this.backPropagate("forExpansion");
@@ -140,13 +153,12 @@ export default class MachinePlayer implements Player {
     public backPropagate(
         state: "forExpansion" | "firstMoverWin" | "firstMoverLose" | "tie"
     ): void {
-        let currentNode: Node =
-            this._database[this._path[this._path.length - 1]];
-        let depth: number = this._path.length - 1;
+        let currentNode: Node = this.database[this.path[this.path.length - 1]];
+        let depth: number = this.path.length - 1;
 
         // First, et all values along the path to null.
-        for (let eachHashVal of this._path) {
-            this._database[eachHashVal].value = null;
+        for (let eachHashVal of this.path) {
+            this.database[eachHashVal].value = null;
         }
 
         // Then, re-fill in all the values that's been set to null
@@ -163,7 +175,7 @@ export default class MachinePlayer implements Player {
         let hasNullChild: boolean = false;
         let nullIdxList: number[] = [];
         for (let i = 0; i < aListOfHashes.length; i++) {
-            if (this._database[aListOfHashes[i]].value === null) {
+            if (this.database[aListOfHashes[i]].value === null) {
                 hasNullChild = true;
                 nullIdxList.push(i);
             }
@@ -181,16 +193,16 @@ export default class MachinePlayer implements Player {
         let aboutThisNode = this.hasNullValueChild(currentChildrenList);
         if (aboutThisNode["hasNullChild"]) {
             for (let i of aboutThisNode["nullIdxList"]) {
-                this._database[currentChildrenList[i]].value =
+                this.database[currentChildrenList[i]].value =
                     this.evaluateByMinimax(
-                        this._database[currentChildrenList[i]],
+                        this.database[currentChildrenList[i]],
                         !isMaximizer
                     );
             }
         }
         let childrenValueList: number[] = [];
         for (let each of currentChildrenList) {
-            childrenValueList.push(this._database[each].value);
+            childrenValueList.push(this.database[each].value);
         }
         function ascendingSort(a: number, b: number): number {
             if (a === b) return 0;
@@ -206,6 +218,6 @@ export default class MachinePlayer implements Player {
         return v;
     }
     public printDatabaseInfo(): void {
-        console.log(`Database size: ${Object.keys(this._database).length}`);
+        console.log(`Database size: ${Object.keys(this.database).length}`);
     }
 }

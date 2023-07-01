@@ -1,10 +1,13 @@
 import Player from "./player";
+import { Cell, MovePositionEvent } from "./ticTacToe";
+
 export default class RandomPlayer implements Player {
-    private _allChoices: [number, number][];
-    private _availableChoices: [number, number][];
-    public playMark: "O" | "X" | null;
-    public constructor(
-        initChoices: [number, number][] = [
+    private allChoices: [number, number][];
+    private availableChoices: [number, number][];
+    public markPlaying: "O" | "X" | null;
+    public winCount: number;
+    public constructor() {
+        this.allChoices = [
             [0, 0],
             [0, 1],
             [0, 2],
@@ -14,29 +17,35 @@ export default class RandomPlayer implements Player {
             [2, 0],
             [2, 1],
             [2, 2],
-        ]
-    ) {
-        this._allChoices = initChoices;
-        this._availableChoices = this._allChoices;
-        this.playMark = null;
+        ];
+        this.availableChoices = this.allChoices;
+        this.markPlaying = null;
+        this.winCount = 0;
     }
     public resetChoices(): void {
-        this._availableChoices = this._allChoices;
+        this.availableChoices = this.allChoices;
     }
     public moveWithOpponent(
         position: [number, number],
-        latestBoard: (" " | "X" | "O")[][] = []
+        latestBoard: Cell[][] = []
     ): void {
-        this._availableChoices = this._availableChoices.filter((each) => {
+        this.availableChoices = this.availableChoices.filter((each) => {
             return each[0] !== position[0] || each[1] !== position[1];
         });
     }
     public select(): [number, number] {
-        let position: [number, number] =
-            this._availableChoices[
-                Math.floor(Math.random() * this._availableChoices.length)
+        const position: [number, number] =
+            this.availableChoices[
+                Math.floor(Math.random() * this.availableChoices.length)
             ];
         this.moveWithOpponent(position);
+        setTimeout(() => {
+            document.dispatchEvent(
+                new CustomEvent<MovePositionEvent>("move", {
+                    detail: { position, markPlaying: this.markPlaying! },
+                })
+            );
+        });
         return position;
     }
 }

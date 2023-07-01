@@ -1,8 +1,8 @@
+import { Cell } from "./ticTacToe";
+
 export default interface Player {
-    playMark: "O" | "X" | null;
-    select(arg?: any): [number, number];
-    moveWithOpponent(
-        position: [number, number],
-        latestBoard: (" " | "X" | "O")[][]
-    ): void;
+    markPlaying: "O" | "X" | null;
+    winCount: number;
+    select(...arg: any): [number, number];
+    moveWithOpponent(position: [number, number], latestBoard: Cell[][]): void;
 }

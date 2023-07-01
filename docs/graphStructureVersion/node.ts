@@ -11,7 +11,7 @@ export default class Node {
     set value(v: number) {
         this._value = v;
     }
-    get childrenList(): string[] {
+    public get childrenList(): string[] {
         return this._childrenList;
     }
     public appendChild(hashVal: string): void {

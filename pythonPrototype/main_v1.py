@@ -1,12 +1,13 @@
-import machinePlayer_v1_1 as mp
-import randomPlayer as rp
-import numpy as np
+import os
 import random
 import time
-import os
+
+import machinePlayer_v1_1 as mp
+import numpy as np
+import randomPlayer as rp
 
 
-class ticTacToe():
+class ticTacToe:
     def __init__(self):
         self.board = np.full((3, 3), " ")
         self.gameRunning = True
@@ -19,13 +20,11 @@ class ticTacToe():
         self.tie = 0
         self.player = mp.machinePlayer()
         self.rdPlayer = rp.randomPlayer(
-            [(0, 0), (0, 1), (0, 2),
-             (1, 0), (1, 1), (1, 2),
-             (2, 0), (2, 1), (2, 2)])
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+        )
         self.rdPlayer2 = rp.randomPlayer(
-            [(0, 0), (0, 1), (0, 2),
-             (1, 0), (1, 1), (1, 2),
-             (2, 0), (2, 1), (2, 2)])
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+        )
 
     def validHumanInput(self):
         valid = False
@@ -50,10 +49,10 @@ class ticTacToe():
 
     def playerMakeMove(self, role="", opponent=""):
         if self.mover == 1:
-            playMark = "O"
+            markPlaying = "O"
             playerName = 1
         else:
-            playMark = "X"
+            markPlaying = "X"
             playerName = 2
 
         if role == "":
@@ -66,9 +65,9 @@ class ticTacToe():
         elif role == "human":
             pos = self.validHumanInput()
 
-        self.board[pos[1]][pos[0]] = playMark
+        self.board[pos[1]][pos[0]] = markPlaying
         if role == "human":
-            os.system('cls')
+            os.system("cls")
             print(self.board)
 
         if opponent == "random":
@@ -78,7 +77,7 @@ class ticTacToe():
                 self.rdPlayer.updateChoices(pos)
         elif opponent == "human":
             time.sleep(0.5)
-            os.system('cls')
+            os.system("cls")
             print(self.board)
         elif opponent == "":
             if role == "":
@@ -103,11 +102,9 @@ class ticTacToe():
                     winner = each[0]
                     hasWinner = True
                     break
-        if not hasWinner:   # Check diagnals
-            diagnal1 = np.array(
-                [self.board[0][0], self.board[1][1], self.board[2][2]])
-            diagnal2 = np.array(
-                [self.board[0][2], self.board[1][1], self.board[2][0]])
+        if not hasWinner:  # Check diagnals
+            diagnal1 = np.array([self.board[0][0], self.board[1][1], self.board[2][2]])
+            diagnal2 = np.array([self.board[0][2], self.board[1][1], self.board[2][0]])
             if np.all(diagnal1 == diagnal1[0]) and diagnal1[0] != " ":
                 winner = diagnal1[0]
                 hasWinner = True
@@ -165,7 +162,7 @@ class ticTacToe():
         self.gameRunning = True
         self.board = np.full((3, 3), " ")
         if p1 == "human" or p2 == "human":
-            os.system('cls')
+            os.system("cls")
             print(self.board)
         self.mover = random.randint(1, 2)
         if self.mover == 1:
@@ -194,11 +191,12 @@ class ticTacToe():
                 self.newGame(p1, p2)
 
     def printTrainResult(self):
-        print("Game start with P1: %s / P2: %s" %
-              (str(self.p1Start), str(self.p2Start)))
-        print("P1 winning rate: %.2f%%" % (self.p1Win/self.totalGames*100))
-        print("P2 winning rate: %.2f%%" % (self.p2Win/self.totalGames*100))
-        print("Tie rate: %.2f%%" % (self.tie/self.totalGames*100))
+        print(
+            "Game start with P1: %s / P2: %s" % (str(self.p1Start), str(self.p2Start))
+        )
+        print("P1 winning rate: %.2f%%" % (self.p1Win / self.totalGames * 100))
+        print("P2 winning rate: %.2f%%" % (self.p2Win / self.totalGames * 100))
+        print("Tie rate: %.2f%%" % (self.tie / self.totalGames * 100))
 
     def trainStatisticsRefresh(self):
         self.p1Start = 0
@@ -209,7 +207,7 @@ class ticTacToe():
         self.tie = 0
 
     def trainMachine(self, trainTimes, batch, train_type=""):
-        epoch = trainTimes//batch
+        epoch = trainTimes // batch
         mod = trainTimes % batch
         for i in range(epoch):
             self.play(trainTimes=batch, p1="", p2=train_type)
@@ -220,8 +218,9 @@ class ticTacToe():
 
 
 if __name__ == "__main__":
-    os.system('cls')
+    os.system("cls")
     game = ticTacToe()
     game.trainMachine(60000, batch=10000, train_type="random")
     game.play(1, p1="", p2="human")
+    # game.player.postOrderPrintTree(player.root())
     # game.player.postOrderPrintTree(player.root())

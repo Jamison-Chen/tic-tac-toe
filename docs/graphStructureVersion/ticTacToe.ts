@@ -1,250 +1,326 @@
+import Player from "./player.js";
 import MachinePlayer from "./machinePlayer.js";
 import RandomPlayer from "./randomPlayer.js";
-import Player from "./player.js";
 import HumanPlayer from "./humanPlayer.js";
+
+export interface MovePositionEvent {
+    position: [number, number];
+    markPlaying: "O" | "X";
+}
+
+interface GameOverEvent {
+    winner: Player | null;
+    winnerMark: "O" | "X" | null;
+}
+
+class Board {
+    public matrix: Cell[][];
+    public div: HTMLDivElement;
+    public constructor(matrix: Cell[][], div: HTMLDivElement) {
+        this.matrix = matrix;
+        this.div = div;
+        this.div.classList.remove("X");
+        this.div.classList.add("O");
+        this.div.classList.add("show");
+    }
+}
+
+export class Cell {
+    private _div: HTMLDivElement;
+    private _mark: " " | "O" | "X";
+    private onClick: EventListener;
+    public constructor(div: HTMLDivElement, onClick: EventListener) {
+        this._div = div;
+        this._mark = " ";
+        this.onClick = onClick;
+        this._div.classList.remove("O", "X");
+        this._div.removeEventListener("click", this.onClick);
+        this._div.addEventListener("click", this.onClick, { once: true });
+    }
+    public setMark(mark: "O" | "X"): void {
+        this._mark = mark;
+        this._div.classList.add(this._mark);
+        this._div.removeEventListener("click", this.onClick);
+    }
+    public get div(): HTMLDivElement {
+        return this._div;
+    }
+    public get mark(): " " | "O" | "X" {
+        return this._mark;
+    }
+}
+
 export default class TicTacToe {
-    public winningMessageDiv: HTMLElement;
-    public winningMessageText: HTMLElement;
-    public player1: Player | undefined;
-    public player2: Player | undefined;
+    public endingScreenDiv: HTMLElement =
+        document.getElementById("ending-screen")!;
+    public endingMessageDiv: HTMLElement =
+        document.getElementById("ending-message")!;
+    public player1: Player;
+    public player2: Player;
     private p1StartCount: number;
     private p2StartCount: number;
-    private p1WinCount: number;
-    private p2WinCount: number;
+    private isTraining: boolean;
     private totalGames: number;
-    private tieCount: number;
-    public board: (" " | "X" | "O")[][];
-    public gameRunning: boolean;
-    public currentMover: number;
-    public constructor() {
-        this.winningMessageDiv = document.getElementById(
-            "winning-message"
-        ) as HTMLElement;
-        this.winningMessageText = document.querySelector(
-            "[data-winning-message-text]"
-        ) as HTMLElement;
-        this.board = this.initBoard();
-        this.gameRunning = true;
-        this.currentMover = 0;
+    private remainingGames: number;
+    public board?: Board;
+    public currentPlayer: Player | null;
+    public constructor(player1: Player, player2: Player = new RandomPlayer()) {
+        this.player1 = player1;
+        this.player2 = player2;
+        this.currentPlayer = null;
         this.p1StartCount = 0;
         this.p2StartCount = 0;
+        this.isTraining = false;
         this.totalGames = 0;
-        this.p1WinCount = 0;
-        this.p2WinCount = 0;
-        this.tieCount = 0;
+        this.remainingGames = 0;
+        document.addEventListener("move", this.onPlayerMove as EventListener);
+        document.addEventListener("callNextPlayer", this.onCallNextPlayer);
+        document.addEventListener("gameOver", this.onGameOver as EventListener);
+        document.addEventListener("stop", this.onStop);
     }
+    private onClick = (e: Event) => {
+        const position: [number, number] = (
+            e.currentTarget as HTMLDivElement
+        ).id
+            .split(",")
+            .map((e) => parseInt(e)) as [number, number];
+        (this.currentPlayer as HumanPlayer).select(position);
+    };
+    private onPlayerMove = (e: CustomEvent<MovePositionEvent>): void => {
+        const [r, c] = e.detail.position;
+        this.board!.matrix[r][c].setMark(e.detail.markPlaying);
 
-    private playerMakeMove(playerInTurn: Player, opponent: Player): void {
-        let playMark: "O" | "X" = this.currentMover === 1 ? "O" : "X";
-        let pos: [number, number];
-        playerInTurn.playMark = playMark;
-        pos = playerInTurn.select();
-        this.board[pos[0]][pos[1]] = playMark;
-        opponent.moveWithOpponent(pos, this.board);
-    }
+        const opponent =
+            this.currentPlayer === this.player1 ? this.player2 : this.player1;
+        if (!(opponent instanceof HumanPlayer)) {
+            opponent.moveWithOpponent([r, c], this.board!.matrix);
+        }
+        this.judge();
+    };
+    private onCallNextPlayer = (): void => {
+        const oldPlayerMark: string = this.currentPlayer!.markPlaying!;
+        this.currentPlayer =
+            this.currentPlayer === this.player1 ? this.player2 : this.player1;
+        this.board!.div.classList.replace(
+            oldPlayerMark,
+            this.currentPlayer.markPlaying!
+        );
 
-    public judge(): void {
-        let winner: "O" | "X" | null = null;
+        if (!(this.currentPlayer instanceof HumanPlayer)) {
+            setTimeout(() => this.currentPlayer!.select());
+        }
+    };
+    private onGameOver = (e: CustomEvent<GameOverEvent>): void => {
+        if (e.detail.winner) e.detail.winner.winCount++;
+
+        for (const player of [this.player1, this.player2]) {
+            if (player instanceof MachinePlayer) {
+                player.backPropagate(
+                    e.detail.winnerMark === "O"
+                        ? "firstMoverWin"
+                        : e.detail.winnerMark === "X"
+                        ? "firstMoverLose"
+                        : "tie"
+                );
+                player.clearPath();
+            } else if (player instanceof RandomPlayer) {
+                player.resetChoices();
+            } else if (player instanceof HumanPlayer) {
+                this.endingMessageDiv.innerHTML = e.detail.winner
+                    ? `${e.detail.winnerMark} wins!`
+                    : "Draw!";
+                this.endingScreenDiv.className = "show";
+            }
+        }
+        this.remainingGames--;
+        setTimeout(() => {
+            if (this.remainingGames > 0) this.start();
+            else document.dispatchEvent(new CustomEvent("stop"));
+        });
+    };
+    private onStop = (): void => {
+        this.printTrainResult();
+        for (const player of [this.player1, this.player2]) {
+            if (player instanceof MachinePlayer) player.printDatabaseInfo();
+        }
+        if (this.isTraining) {
+            document.dispatchEvent(new CustomEvent("completeTraining"));
+        }
+    };
+    public judge() {
+        let winnerMark: "O" | "X" | null = null;
 
         // Check each row
-        for (let i = 0; i < this.board.length; i++) {
+        for (let i = 0; i < this.board!.matrix.length; i++) {
             if (
-                this.board[i].every(
-                    (e) => e === this.board[i][0] && this.board[i][0] !== " "
-                )
+                this.board!.matrix[i].every((cell) => {
+                    return (
+                        cell.mark === this.board!.matrix[i][0].mark &&
+                        this.board!.matrix[i][0].mark !== " "
+                    );
+                })
             ) {
-                winner = this.board[i][0] as "O" | "X";
+                winnerMark = this.board!.matrix[i][0].mark as "O" | "X";
                 break;
             }
         }
-        if (winner === null) {
+        if (winnerMark === null) {
             // Check each column
-            for (let i = 0; i < this.board[0].length; i++) {
+            for (let i = 0; i < this.board!.matrix[0].length; i++) {
                 if (
-                    this.board.every(
-                        (eachRow) =>
-                            eachRow[i] === this.board[0][i] &&
-                            this.board[0][i] !== " "
-                    )
+                    this.board!.matrix.every((row) => {
+                        return (
+                            row[i].mark === this.board!.matrix[0][i].mark &&
+                            this.board!.matrix[0][i].mark !== " "
+                        );
+                    })
                 ) {
-                    winner = this.board[0][i] as "O" | "X";
+                    winnerMark = this.board!.matrix[0][i].mark as "O" | "X";
                     break;
                 }
             }
         }
-        if (winner === null) {
+        if (winnerMark === null) {
             // Check each diagnal
-            let diagnal1: ("O" | "X" | " ")[] = [
-                this.board[0][0],
-                this.board[1][1],
-                this.board[2][2],
+            const diagnal1: ("O" | "X" | " ")[] = [
+                this.board!.matrix[0][0].mark,
+                this.board!.matrix[1][1].mark,
+                this.board!.matrix[2][2].mark,
             ];
-            let diagnal2: ("O" | "X" | " ")[] = [
-                this.board[0][2],
-                this.board[1][1],
-                this.board[2][0],
+            const diagnal2: ("O" | "X" | " ")[] = [
+                this.board!.matrix[0][2].mark,
+                this.board!.matrix[1][1].mark,
+                this.board!.matrix[2][0].mark,
             ];
             if (
-                diagnal1.every((e) => e === diagnal1[0] && diagnal1[0] !== " ")
+                diagnal1.every(
+                    (mark) => mark === diagnal1[0] && diagnal1[0] !== " "
+                )
             ) {
-                winner = diagnal1[0] as "O" | "X";
+                winnerMark = diagnal1[0] as "O" | "X";
             } else if (
-                diagnal2.every((e) => e === diagnal2[0] && diagnal2[0] !== " ")
+                diagnal2.every(
+                    (mark) => mark === diagnal2[0] && diagnal2[0] !== " "
+                )
             ) {
-                winner = diagnal2[0] as "O" | "X";
+                winnerMark = diagnal2[0] as "O" | "X";
             }
         }
-        if (winner !== null) {
-            if (winner === "O") this.p1WinCount++;
-            else this.p2WinCount++;
-            if (this.player1 instanceof MachinePlayer) {
-                this.player1.backPropagate(
-                    winner === "O" ? "firstMoverWin" : "firstMoverLose"
-                );
-                this.player1.clearPath();
-            } else if (this.player1 instanceof RandomPlayer) {
-                this.player1.resetChoices();
-            } else if (this.player1 instanceof HumanPlayer) {
-                this.endGameWithHuman(false, winner);
-            }
-            if (this.player2 instanceof MachinePlayer) {
-                this.player2.backPropagate(
-                    winner === "O" ? "firstMoverWin" : "firstMoverLose"
-                );
-                this.player2.clearPath();
-            } else if (this.player2 instanceof RandomPlayer) {
-                this.player2.resetChoices();
-            } else if (this.player2 instanceof HumanPlayer) {
-                this.endGameWithHuman(false, winner);
-            }
-            this.gameRunning = false;
-            this.totalGames++;
-        } else if (!this.board.some((r) => r.some((e) => e === " "))) {
-            this.tieCount++;
-            if (this.player1 instanceof MachinePlayer) {
-                this.player1.backPropagate("tie");
-                this.player1.clearPath();
-            } else if (this.player1 instanceof RandomPlayer) {
-                this.player1.resetChoices();
-            } else if (this.player1 instanceof HumanPlayer) {
-                this.endGameWithHuman(true);
-            }
-            if (this.player2 instanceof MachinePlayer) {
-                this.player2.backPropagate("tie");
-                this.player2.clearPath();
-            } else if (this.player2 instanceof RandomPlayer) {
-                this.player2.resetChoices();
-            } else if (this.player2 instanceof HumanPlayer) {
-                this.endGameWithHuman(true);
-            }
-            this.gameRunning = false;
-            this.totalGames++;
-        }
-        this.currentMover = -1 * this.currentMover + 3;
-    }
 
-    private endGameWithHuman(isDraw: boolean, winner?: "O" | "X"): void {
-        this.winningMessageText.innerHTML = isDraw
-            ? "Draw!"
-            : `${winner} wins!`;
-        this.winningMessageDiv.className = "show";
-    }
-
-    private initBoard(): (" " | "X" | "O")[][] {
-        return [
-            [" ", " ", " "],
-            [" ", " ", " "],
-            [" ", " ", " "],
-        ];
-    }
-
-    private decideFirstMover(): void {
-        if (this.player2 instanceof RandomPlayer) this.currentMover = 1;
-        else this.currentMover = Math.floor(Math.random() * 2 + 1);
-    }
-
-    private recordFirstMover(): void {
-        if (this.currentMover === 1) this.p1StartCount++;
-        else this.p2StartCount++;
-    }
-
-    private prepare(): void {
-        this.gameRunning = true;
-        this.board = this.initBoard();
-        this.decideFirstMover();
-        this.recordFirstMover();
-    }
-
-    public startGame(
-        p1: Player,
-        p2: Player,
-        playTimes: number = 1,
-        isTraining: boolean = false
-    ): void {
-        this.player1 = p1;
-        this.player2 = p2;
-        this.resetTrainResult();
-        this.prepare();
-        if (isTraining) {
-            // This loop is only designed for training.
-            while (this.gameRunning) {
-                if (this.currentMover === 1) {
-                    this.playerMakeMove(this.player1, this.player2);
-                    this.judge();
-                    if (this.totalGames === playTimes) break;
-                    if (!this.gameRunning) {
-                        this.prepare();
-                        if (this.currentMover === 1) continue;
-                    }
+        if (winnerMark) {
+            for (const player of [this.player1, this.player2]) {
+                if (player.markPlaying === winnerMark) {
+                    setTimeout(() =>
+                        document.dispatchEvent(
+                            new CustomEvent<GameOverEvent>("gameOver", {
+                                detail: { winner: player, winnerMark },
+                            })
+                        )
+                    );
+                    break;
                 }
-                this.playerMakeMove(this.player2, this.player1);
-                this.judge();
-                if (this.totalGames === playTimes) break;
-                if (!this.gameRunning) this.prepare();
+            }
+        } else if (
+            !this.board!.matrix.some((row) =>
+                row.some((cell) => cell.mark === " ")
+            )
+        ) {
+            setTimeout(() =>
+                document.dispatchEvent(
+                    new CustomEvent<GameOverEvent>("gameOver", {
+                        detail: { winner: null, winnerMark },
+                    })
+                )
+            );
+        } else {
+            setTimeout(() =>
+                document.dispatchEvent(new CustomEvent("callNextPlayer"))
+            );
+        }
+    }
+    private initBoard(): Board {
+        const matrix: Cell[][] = new Array(3)
+            .fill(null)
+            .map(() => new Array(3).fill(null));
+        const boardDiv = document.getElementById("board") as HTMLDivElement;
+        for (const cellDiv of boardDiv.children) {
+            const [r, c] = cellDiv.id.split(",").map((e) => parseInt(e));
+            matrix[r][c] = new Cell(cellDiv as HTMLDivElement, this.onClick);
+        }
+        return new Board(matrix, boardDiv);
+    }
+    public start(isTraining: boolean = this.isTraining): void {
+        this.isTraining = isTraining;
+        if (!this.isTraining) {
+            this.totalGames = 1;
+            this.remainingGames = 1;
+            this.player1.winCount = 0;
+            this.player2.winCount = 0;
+        }
+        this.endingScreenDiv.classList.remove("show");
+        this.board = this.initBoard();
+
+        // Choose and record first player
+        if (this.player2 instanceof RandomPlayer) {
+            this.currentPlayer = this.player1;
+            this.player1.markPlaying = "O";
+            this.player2.markPlaying = "X";
+            this.p1StartCount++;
+        } else {
+            if (Math.random() > 0.5) {
+                this.currentPlayer = this.player1;
+                this.player1.markPlaying = "O";
+                this.player2.markPlaying = "X";
+                this.p1StartCount++;
+            } else {
+                this.currentPlayer = this.player2;
+                this.player1.markPlaying = "X";
+                this.player2.markPlaying = "O";
+                this.p2StartCount++;
             }
         }
-    }
-
-    public trainMachine(
-        trainTimes: number,
-        batch: number,
-        trainee: MachinePlayer,
-        trainer: Player
-    ): void {
-        let epoch: number = Math.floor(trainTimes / batch);
-        let remainder: number = trainTimes % batch;
-        for (let i = 0; i < epoch; i++) {
-            this.startGame(trainee, trainer, batch, true);
-            this.printTrainResult();
-        }
-        if (remainder !== 0) {
-            this.startGame(trainee, trainer, remainder, true);
-            this.printTrainResult();
+        if (!(this.currentPlayer instanceof HumanPlayer)) {
+            setTimeout(() => this.currentPlayer!.select());
         }
     }
-
+    public trainMachine(trainTimes: number, batch: number): void {
+        const epoch: number = Math.floor(trainTimes / batch);
+        const remainder: number = trainTimes % batch;
+        // for (let i = 0; i < epoch; i++) {
+        this.totalGames = batch;
+        this.remainingGames = batch;
+        this.start(true);
+        // }
+        // if (remainder !== 0) {
+        //     this.totalGames = remainder;
+        //     this.remainingGames = remainder;
+        //     this.start();
+        // }
+    }
     private printTrainResult(): void {
         console.log(
             `Game start with P1: ${this.p1StartCount} / P2: ${this.p2StartCount}`
         );
-        let p1WinningRate =
-            Math.round((this.p1WinCount / this.totalGames) * 10000) / 100;
-        let p2WinningRate =
-            Math.round((this.p2WinCount / this.totalGames) * 10000) / 100;
-        let tieRate =
-            Math.round((this.tieCount / this.totalGames) * 10000) / 100;
+        const p1WinningRate =
+            Math.round((this.player1.winCount / this.totalGames) * 10000) / 100;
+        const p2WinningRate =
+            Math.round((this.player2.winCount / this.totalGames) * 10000) / 100;
+        const drawRate =
+            Math.round(
+                ((this.totalGames -
+                    (this.player1.winCount + this.player2.winCount)) /
+                    this.totalGames) *
+                    10000
+            ) / 100;
         console.log(
-            `P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${tieRate}%`
+            `P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${drawRate}%`
         );
-        (this.player1 as MachinePlayer).printDatabaseInfo();
     }
-
     private resetTrainResult(): void {
         this.p1StartCount = 0;
         this.p2StartCount = 0;
         this.totalGames = 0;
-        this.p1WinCount = 0;
-        this.p2WinCount = 0;
-        this.tieCount = 0;
+        this.player1.winCount = 0;
+        this.player2.winCount = 0;
     }
 }

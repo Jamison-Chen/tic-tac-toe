@@ -3,8 +3,12 @@ import { TicTacToe } from "./trainField.js";
 const game: TicTacToe = new TicTacToe();
 
 const controlBar: HTMLElement | null = document.getElementById("control-bar");
-const restartBtn: HTMLElement | null = document.getElementById("restart-btn");
-const reloadBtn: HTMLElement | null = document.getElementById("reload-btn");
+const reloadBtnInEndingScreen: HTMLElement | null = document.getElementById(
+    "reload-btn-in-ending-screen"
+);
+const reloadBtnInControlBar: HTMLElement | null = document.getElementById(
+    "reload-btn-in-control-bar"
+);
 const multiplayerBtn: HTMLElement | null =
     document.getElementById("multiplayer-btn");
 const naiveMachineBtn: HTMLElement | null =
@@ -12,13 +16,12 @@ const naiveMachineBtn: HTMLElement | null =
 const trainedMachineBtn: HTMLElement | null = document.getElementById(
     "trained-machine-btn"
 );
-const cellDivs = document.querySelectorAll("[data-cell]");
-const board: HTMLElement | null = document.getElementById("main-board");
-const winningMessageDiv: HTMLElement | null =
-    document.getElementById("winning-message");
-const winningMessageText: HTMLElement | null = document.querySelector(
-    "[data-winning-message-text]"
-);
+const cells = document.querySelectorAll("[data-cell]");
+const board: HTMLElement | null = document.getElementById("board");
+const endingScreen: HTMLElement | null =
+    document.getElementById("ending-screen");
+const winningMessageText: HTMLElement | null =
+    document.getElementById("ending-message");
 
 let xTurn: boolean;
 let mode: string;
@@ -41,14 +44,14 @@ naiveMachineBtn?.addEventListener("click", (e) => {
 trainedMachineBtn?.addEventListener("click", (e) => {
     singlePlayerMode(e, true);
 });
-reloadBtn?.addEventListener("click", (e) => {
+reloadBtnInControlBar?.addEventListener("click", (e) => {
     location.reload();
 });
-restartBtn?.addEventListener("click", (e) => {
+reloadBtnInEndingScreen?.addEventListener("click", (e) => {
     location.reload();
 });
 
-function disableBtns(): void {
+function disableControlBar(): void {
     if (
         trainedMachineBtn instanceof HTMLButtonElement &&
         multiplayerBtn instanceof HTMLButtonElement &&
@@ -64,7 +67,7 @@ function disableBtns(): void {
 }
 
 function singlePlayerMode(e: Event, shouldTrain: boolean): void {
-    disableBtns();
+    disableControlBar();
     setTimeout(() => {
         board?.classList.add("show");
         mode = "single";
@@ -90,19 +93,19 @@ function machineMakeMove(): void {
 }
 
 function multiplayerMode(): void {
-    disableBtns();
+    disableControlBar();
     board?.classList.add("show");
     mode = "multi";
     startGame("O");
 }
 
 function startGame(firstPlayer: string): void {
-    if (board !== null && winningMessageDiv !== null) {
+    if (board !== null && endingScreen !== null) {
         board.classList.remove("X");
         board.classList.remove("O");
         board.classList.add(firstPlayer);
         if (mode === "single") {
-            cellDivs.forEach((each) => {
+            cells.forEach((each) => {
                 each.classList.remove("O");
                 each.classList.remove("X");
                 each.removeEventListener("click", handleClickSingle);
@@ -113,7 +116,7 @@ function startGame(firstPlayer: string): void {
             });
         } else {
             xTurn = firstPlayer === "X";
-            cellDivs.forEach((each) => {
+            cells.forEach((each) => {
                 each.classList.remove("O");
                 each.classList.remove("X");
                 each.removeEventListener("click", handleClickMulti);
@@ -123,7 +126,7 @@ function startGame(firstPlayer: string): void {
                 });
             });
         }
-        winningMessageDiv.className = "";
+        endingScreen.className = "";
     }
 }
 
@@ -160,22 +163,22 @@ function placeMark(cell: HTMLElement, currentPlayer: string): void {
 function hasWinner(currentPlayer: string): boolean {
     return winningCombinations.some((each) => {
         return each.every((i) => {
-            return cellDivs[i].classList.contains(currentPlayer);
+            return cells[i].classList.contains(currentPlayer);
         });
     });
 }
 
 function isDraw(): boolean {
-    return [...cellDivs].every((each) => {
+    return [...cells].every((each) => {
         return each.classList.contains("X") || each.classList.contains("O");
     });
 }
 
 function multiplayerEndGame(isDraw: boolean): void {
-    if (winningMessageText !== null && winningMessageDiv !== null) {
+    if (winningMessageText !== null && endingScreen !== null) {
         if (isDraw) winningMessageText.innerHTML = "Draw!";
         else winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
-        winningMessageDiv.className = "show";
+        endingScreen.className = "show";
     }
 }
 

@@ -1,7 +1,7 @@
 import { MachinePlayer } from "./machinePlayer.js";
 import { RandomPlayer } from "./randomPlayer.js";
 export class TicTacToe {
-    public winningMessageDiv: HTMLElement | null;
+    public endingScreen: HTMLElement | null;
     public winningMessageText: HTMLElement | null;
     private p1: string;
     private p2: string;
@@ -17,10 +17,8 @@ export class TicTacToe {
     public player: MachinePlayer;
     public rdPlayer: RandomPlayer;
     public constructor() {
-        this.winningMessageDiv = document.getElementById("winning-message");
-        this.winningMessageText = document.querySelector(
-            "[data-winning-message-text]"
-        );
+        this.endingScreen = document.getElementById("ending-screen");
+        this.winningMessageText = document.getElementById("ending-message");
         this.p1 = "";
         this.p2 = "";
         this.virtualBoard = this.genVirtualBoard();
@@ -47,13 +45,13 @@ export class TicTacToe {
     }
 
     private playerMakeMove(role = "", opponent = ""): void {
-        let playMark: string = this.mover === 1 ? "O" : "X";
+        let markPlaying: string = this.mover === 1 ? "O" : "X";
         let playerName: string = String(this.mover);
         let pos: [number, number] | "ROOT" | null = null;
         if (role === "") pos = this.player.select(playerName);
         else if (this.mover === 2) pos = this.rdPlayer.select();
         if (pos instanceof Array) {
-            this.virtualBoard[pos[1]][pos[0]] = playMark;
+            this.virtualBoard[pos[1]][pos[0]] = markPlaying;
             if (opponent === "random") {
                 if (this.mover === 1) this.rdPlayer.updateChoices(pos);
             } else if (this.mover === 2)
@@ -141,14 +139,11 @@ export class TicTacToe {
     }
 
     private endGameWithHuman(isDraw: boolean, winner?: string): void {
-        if (
-            this.winningMessageText !== null &&
-            this.winningMessageDiv !== null
-        ) {
+        if (this.winningMessageText !== null && this.endingScreen !== null) {
             this.winningMessageText.innerHTML = isDraw
                 ? "Draw!"
                 : `${winner} wins!`;
-            this.winningMessageDiv.className = "show";
+            this.endingScreen.className = "show";
         }
     }
 

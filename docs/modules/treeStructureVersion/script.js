@@ -1,15 +1,15 @@
 import { TicTacToe } from "./trainField.js";
 const game = new TicTacToe();
 const controlBar = document.getElementById("control-bar");
-const restartBtn = document.getElementById("restart-btn");
-const reloadBtn = document.getElementById("reload-btn");
+const reloadBtnInEndingScreen = document.getElementById("reload-btn-in-ending-screen");
+const reloadBtnInControlBar = document.getElementById("reload-btn-in-control-bar");
 const multiplayerBtn = document.getElementById("multiplayer-btn");
 const naiveMachineBtn = document.getElementById("naive-machine-btn");
 const trainedMachineBtn = document.getElementById("trained-machine-btn");
-const cellDivs = document.querySelectorAll("[data-cell]");
-const board = document.getElementById("main-board");
-const winningMessageDiv = document.getElementById("winning-message");
-const winningMessageText = document.querySelector("[data-winning-message-text]");
+const cells = document.querySelectorAll("[data-cell]");
+const board = document.getElementById("board");
+const endingScreen = document.getElementById("ending-screen");
+const winningMessageText = document.getElementById("ending-message");
 let xTurn;
 let mode;
 const winningCombinations = [
@@ -29,13 +29,13 @@ naiveMachineBtn === null || naiveMachineBtn === void 0 ? void 0 : naiveMachineBt
 trainedMachineBtn === null || trainedMachineBtn === void 0 ? void 0 : trainedMachineBtn.addEventListener("click", (e) => {
     singlePlayerMode(e, true);
 });
-reloadBtn === null || reloadBtn === void 0 ? void 0 : reloadBtn.addEventListener("click", (e) => {
+reloadBtnInControlBar === null || reloadBtnInControlBar === void 0 ? void 0 : reloadBtnInControlBar.addEventListener("click", (e) => {
     location.reload();
 });
-restartBtn === null || restartBtn === void 0 ? void 0 : restartBtn.addEventListener("click", (e) => {
+reloadBtnInEndingScreen === null || reloadBtnInEndingScreen === void 0 ? void 0 : reloadBtnInEndingScreen.addEventListener("click", (e) => {
     location.reload();
 });
-function disableBtns() {
+function disableControlBar() {
     if (trainedMachineBtn instanceof HTMLButtonElement &&
         multiplayerBtn instanceof HTMLButtonElement &&
         naiveMachineBtn instanceof HTMLButtonElement &&
@@ -48,7 +48,7 @@ function disableBtns() {
     }
 }
 function singlePlayerMode(e, shouldTrain) {
-    disableBtns();
+    disableControlBar();
     setTimeout(() => {
         board === null || board === void 0 ? void 0 : board.classList.add("show");
         mode = "single";
@@ -74,18 +74,18 @@ function machineMakeMove() {
     board === null || board === void 0 ? void 0 : board.classList.replace("O", "X");
 }
 function multiplayerMode() {
-    disableBtns();
+    disableControlBar();
     board === null || board === void 0 ? void 0 : board.classList.add("show");
     mode = "multi";
     startGame("O");
 }
 function startGame(firstPlayer) {
-    if (board !== null && winningMessageDiv !== null) {
+    if (board !== null && endingScreen !== null) {
         board.classList.remove("X");
         board.classList.remove("O");
         board.classList.add(firstPlayer);
         if (mode === "single") {
-            cellDivs.forEach((each) => {
+            cells.forEach((each) => {
                 each.classList.remove("O");
                 each.classList.remove("X");
                 each.removeEventListener("click", handleClickSingle);
@@ -97,7 +97,7 @@ function startGame(firstPlayer) {
         }
         else {
             xTurn = firstPlayer === "X";
-            cellDivs.forEach((each) => {
+            cells.forEach((each) => {
                 each.classList.remove("O");
                 each.classList.remove("X");
                 each.removeEventListener("click", handleClickMulti);
@@ -107,7 +107,7 @@ function startGame(firstPlayer) {
                 });
             });
         }
-        winningMessageDiv.className = "";
+        endingScreen.className = "";
     }
 }
 function handleClickSingle(e) {
@@ -144,22 +144,22 @@ function placeMark(cell, currentPlayer) {
 function hasWinner(currentPlayer) {
     return winningCombinations.some((each) => {
         return each.every((i) => {
-            return cellDivs[i].classList.contains(currentPlayer);
+            return cells[i].classList.contains(currentPlayer);
         });
     });
 }
 function isDraw() {
-    return [...cellDivs].every((each) => {
+    return [...cells].every((each) => {
         return each.classList.contains("X") || each.classList.contains("O");
     });
 }
 function multiplayerEndGame(isDraw) {
-    if (winningMessageText !== null && winningMessageDiv !== null) {
+    if (winningMessageText !== null && endingScreen !== null) {
         if (isDraw)
             winningMessageText.innerHTML = "Draw!";
         else
             winningMessageText.innerHTML = `${xTurn ? "X" : "O"} wins!`;
-        winningMessageDiv.className = "show";
+        endingScreen.className = "show";
     }
 }
 function swapTurn(currentPlayer) {

@@ -2,8 +2,8 @@ import { MachinePlayer } from "./machinePlayer.js";
 import { RandomPlayer } from "./randomPlayer.js";
 export class TicTacToe {
     constructor() {
-        this.winningMessageDiv = document.getElementById("winning-message");
-        this.winningMessageText = document.querySelector("[data-winning-message-text]");
+        this.endingScreen = document.getElementById("ending-screen");
+        this.winningMessageText = document.getElementById("ending-message");
         this.p1 = "";
         this.p2 = "";
         this.virtualBoard = this.genVirtualBoard();
@@ -29,7 +29,7 @@ export class TicTacToe {
         ]);
     }
     playerMakeMove(role = "", opponent = "") {
-        let playMark = this.mover === 1 ? "O" : "X";
+        let markPlaying = this.mover === 1 ? "O" : "X";
         let playerName = String(this.mover);
         let pos = null;
         if (role === "")
@@ -37,7 +37,7 @@ export class TicTacToe {
         else if (this.mover === 2)
             pos = this.rdPlayer.select();
         if (pos instanceof Array) {
-            this.virtualBoard[pos[1]][pos[0]] = playMark;
+            this.virtualBoard[pos[1]][pos[0]] = markPlaying;
             if (opponent === "random") {
                 if (this.mover === 1)
                     this.rdPlayer.updateChoices(pos);
@@ -122,12 +122,11 @@ export class TicTacToe {
         this.mover = -1 * this.mover + 3;
     }
     endGameWithHuman(isDraw, winner) {
-        if (this.winningMessageText !== null &&
-            this.winningMessageDiv !== null) {
+        if (this.winningMessageText !== null && this.endingScreen !== null) {
             this.winningMessageText.innerHTML = isDraw
                 ? "Draw!"
                 : `${winner} wins!`;
-            this.winningMessageDiv.className = "show";
+            this.endingScreen.className = "show";
         }
     }
     genVirtualBoard() {

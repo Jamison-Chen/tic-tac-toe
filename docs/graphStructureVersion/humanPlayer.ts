@@ -1,14 +1,28 @@
 import Player from "./player";
+import { MovePositionEvent, Cell } from "./ticTacToe";
+
 export default class HumanPlayer implements Player {
-    public playMark: "O" | "X" | null;
+    public markPlaying: "O" | "X" | null;
+    public winCount: number;
     public constructor() {
-        this.playMark = null;
+        this.markPlaying = null;
+        this.winCount = 0;
     }
     public moveWithOpponent(
         position: [number, number],
-        latestBoard: (" " | "X" | "O")[][] = []
+        latestBoard: Cell[][] = []
     ): void {}
-    public select(posIn: [number, number]): [number, number] {
-        return posIn;
+    public select(position: [number, number]): [number, number] {
+        setTimeout(() => {
+            document.dispatchEvent(
+                new CustomEvent<MovePositionEvent>("move", {
+                    detail: {
+                        position: position,
+                        markPlaying: this.markPlaying!,
+                    },
+                })
+            );
+        });
+        return position;
     }
 }
