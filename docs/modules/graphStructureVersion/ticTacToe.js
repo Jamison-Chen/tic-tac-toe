@@ -24,9 +24,6 @@ export class Cell {
         this._div.classList.add(this._mark);
         this._div.removeEventListener("click", this.onClick);
     }
-    get div() {
-        return this._div;
-    }
     get mark() {
         return this._mark;
     }
@@ -42,8 +39,9 @@ export default class TicTacToe {
             this.currentPlayer.select(position);
         };
         this.onPlayerMove = (e) => {
+            var _a;
             const [r, c] = e.detail.position;
-            this.board.matrix[r][c].setMark(e.detail.markPlaying);
+            (_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[r][c].setMark(e.detail.markPlaying);
             const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
             if (!(opponent instanceof HumanPlayer)) {
                 opponent.moveWithOpponent([r, c], this.board.matrix);
@@ -51,12 +49,13 @@ export default class TicTacToe {
             this.judge();
         };
         this.onCallNextPlayer = () => {
-            const oldPlayerMark = this.currentPlayer.markPlaying;
+            var _a, _b;
+            const oldPlayerMark = (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.markPlaying;
             this.currentPlayer =
                 this.currentPlayer === this.player1 ? this.player2 : this.player1;
-            this.board.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
+            (_b = this.board) === null || _b === void 0 ? void 0 : _b.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
             if (!(this.currentPlayer instanceof HumanPlayer)) {
-                setTimeout(() => this.currentPlayer.select());
+                setTimeout(() => { var _a; return (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.select(); });
             }
         };
         this.onGameOver = (e) => {
@@ -64,11 +63,11 @@ export default class TicTacToe {
                 e.detail.winner.winCount++;
             for (const player of [this.player1, this.player2]) {
                 if (player instanceof MachinePlayer) {
-                    player.backPropagate(e.detail.winnerMark === "O"
-                        ? "firstMoverWin"
-                        : e.detail.winnerMark === "X"
-                            ? "firstMoverLose"
-                            : "tie");
+                    player.backPropagate(e.detail.winnerMark === player.markPlaying
+                        ? "win"
+                        : e.detail.winnerMark === null
+                            ? "tie"
+                            : "lose");
                     player.clearPath();
                 }
                 else if (player instanceof RandomPlayer) {
@@ -95,9 +94,17 @@ export default class TicTacToe {
                 if (player instanceof MachinePlayer)
                     player.printDatabaseInfo();
             }
-            if (this.isTraining) {
-                document.dispatchEvent(new CustomEvent("completeTraining"));
-            }
+            this.resetTrainResultOfCurrentEpoch();
+            this.remainingEpoch--;
+            setTimeout(() => {
+                if (this.isTraining && this.remainingEpoch <= 0) {
+                    document.dispatchEvent(new CustomEvent("completeTraining"));
+                }
+                else if (this.nonStopping || this.remainingEpoch > 0) {
+                    this.remainingGames = this.gamesPerEpoch;
+                    this.start();
+                }
+            });
         };
         this.player1 = player1;
         this.player2 = player2;
@@ -105,7 +112,9 @@ export default class TicTacToe {
         this.p1StartCount = 0;
         this.p2StartCount = 0;
         this.isTraining = false;
-        this.totalGames = 0;
+        this.nonStopping = false;
+        this.remainingEpoch = 0;
+        this.gamesPerEpoch = 0;
         this.remainingGames = 0;
         document.addEventListener("move", this.onPlayerMove);
         document.addEventListener("callNextPlayer", this.onCallNextPlayer);
@@ -113,11 +122,13 @@ export default class TicTacToe {
         document.addEventListener("stop", this.onStop);
     }
     judge() {
+        var _a, _b, _c;
         let winnerMark = null;
         // Check each row
         for (let i = 0; i < this.board.matrix.length; i++) {
-            if (this.board.matrix[i].every((cell) => {
-                return (cell.mark === this.board.matrix[i][0].mark &&
+            if ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i].every((cell) => {
+                var _a;
+                return (cell.mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i][0].mark) &&
                     this.board.matrix[i][0].mark !== " ");
             })) {
                 winnerMark = this.board.matrix[i][0].mark;
@@ -127,8 +138,9 @@ export default class TicTacToe {
         if (winnerMark === null) {
             // Check each column
             for (let i = 0; i < this.board.matrix[0].length; i++) {
-                if (this.board.matrix.every((row) => {
-                    return (row[i].mark === this.board.matrix[0][i].mark &&
+                if ((_b = this.board) === null || _b === void 0 ? void 0 : _b.matrix.every((row) => {
+                    var _a;
+                    return (row[i].mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[0][i].mark) &&
                         this.board.matrix[0][i].mark !== " ");
                 })) {
                     winnerMark = this.board.matrix[0][i].mark;
@@ -165,7 +177,7 @@ export default class TicTacToe {
                 }
             }
         }
-        else if (!this.board.matrix.some((row) => row.some((cell) => cell.mark === " "))) {
+        else if (!((_c = this.board) === null || _c === void 0 ? void 0 : _c.matrix.some((row) => row.some((cell) => cell.mark === " ")))) {
             setTimeout(() => document.dispatchEvent(new CustomEvent("gameOver", {
                 detail: { winner: null, winnerMark },
             })));
@@ -185,10 +197,12 @@ export default class TicTacToe {
         }
         return new Board(matrix, boardDiv);
     }
-    start(isTraining = this.isTraining) {
+    start(isTraining = this.isTraining, nonStopping = this.nonStopping) {
+        this.nonStopping = nonStopping;
         this.isTraining = isTraining;
         if (!this.isTraining) {
-            this.totalGames = 1;
+            this.remainingEpoch = 1;
+            this.gamesPerEpoch = 1;
             this.remainingGames = 1;
             this.player1.winCount = 0;
             this.player2.winCount = 0;
@@ -196,58 +210,43 @@ export default class TicTacToe {
         this.endingScreenDiv.classList.remove("show");
         this.board = this.initBoard();
         // Choose and record first player
-        if (this.player2 instanceof RandomPlayer) {
+        if (Math.random() >= 0.5) {
             this.currentPlayer = this.player1;
             this.player1.markPlaying = "O";
             this.player2.markPlaying = "X";
             this.p1StartCount++;
         }
         else {
-            if (Math.random() > 0.5) {
-                this.currentPlayer = this.player1;
-                this.player1.markPlaying = "O";
-                this.player2.markPlaying = "X";
-                this.p1StartCount++;
-            }
-            else {
-                this.currentPlayer = this.player2;
-                this.player1.markPlaying = "X";
-                this.player2.markPlaying = "O";
-                this.p2StartCount++;
-            }
+            this.currentPlayer = this.player2;
+            this.player1.markPlaying = "X";
+            this.player2.markPlaying = "O";
+            this.p2StartCount++;
         }
         if (!(this.currentPlayer instanceof HumanPlayer)) {
-            setTimeout(() => this.currentPlayer.select());
+            setTimeout(() => { var _a; return (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.select(); });
         }
     }
     trainMachine(trainTimes, batch) {
-        const epoch = Math.floor(trainTimes / batch);
-        const remainder = trainTimes % batch;
-        // for (let i = 0; i < epoch; i++) {
-        this.totalGames = batch;
+        this.remainingEpoch = Math.floor(trainTimes / batch);
+        this.gamesPerEpoch = batch;
         this.remainingGames = batch;
         this.start(true);
-        // }
-        // if (remainder !== 0) {
-        //     this.totalGames = remainder;
-        //     this.remainingGames = remainder;
-        //     this.start();
-        // }
     }
     printTrainResult() {
         console.log(`Game start with P1: ${this.p1StartCount} / P2: ${this.p2StartCount}`);
-        const p1WinningRate = Math.round((this.player1.winCount / this.totalGames) * 10000) / 100;
-        const p2WinningRate = Math.round((this.player2.winCount / this.totalGames) * 10000) / 100;
-        const drawRate = Math.round(((this.totalGames -
+        const p1WinningRate = Math.round((this.player1.winCount / this.gamesPerEpoch) * 10000) /
+            100;
+        const p2WinningRate = Math.round((this.player2.winCount / this.gamesPerEpoch) * 10000) /
+            100;
+        const drawRate = Math.round(((this.gamesPerEpoch -
             (this.player1.winCount + this.player2.winCount)) /
-            this.totalGames) *
+            this.gamesPerEpoch) *
             10000) / 100;
         console.log(`P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${drawRate}%`);
     }
-    resetTrainResult() {
+    resetTrainResultOfCurrentEpoch() {
         this.p1StartCount = 0;
         this.p2StartCount = 0;
-        this.totalGames = 0;
         this.player1.winCount = 0;
         this.player2.winCount = 0;
     }

@@ -36,24 +36,22 @@ function startMultiPlayerGame(): void {
 
 function startSinglePlayerGame(shouldTrain: boolean): void {
     disableControlBar();
-    setTimeout(() => {
-        if (shouldTrain) {
-            const game: TicTacToe = new TicTacToe(machinePlayer);
-            game.trainMachine(20000, 200);
-            document.addEventListener("completeTraining", () => {
-                setTimeout(() => {
-                    game.player2 = new HumanPlayer();
-                    game.start(false);
-                });
+    if (shouldTrain) {
+        const game: TicTacToe = new TicTacToe(
+            machinePlayer
+            // new MachinePlayer()
+        );
+        game.trainMachine(5000, 250);
+        document.addEventListener("completeTraining", () => {
+            setTimeout(() => {
+                game.player2 = new HumanPlayer();
+                game.start(false, true);
             });
-        } else {
-            const game: TicTacToe = new TicTacToe(
-                machinePlayer,
-                new HumanPlayer()
-            );
-            game.start(false);
-        }
-    });
+        });
+    } else {
+        const game: TicTacToe = new TicTacToe(machinePlayer, new HumanPlayer());
+        game.start(false);
+    }
 }
 
 function disableControlBar(): void {
