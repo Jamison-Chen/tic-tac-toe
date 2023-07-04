@@ -3,7 +3,6 @@ export default class HumanPlayer {
         this.markPlaying = null;
         this.winCount = 0;
     }
-    moveWithOpponent(position, latestBoard = []) { }
     select(position) {
         setTimeout(() => {
             document.dispatchEvent(new CustomEvent("move", {

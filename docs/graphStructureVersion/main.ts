@@ -1,5 +1,5 @@
 import TicTacToe from "./ticTacToe.js";
-import MachinePlayer from "./machinePlayer.js";
+import MLPlayer from "./mlPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 
 const controlBar: HTMLElement = document.getElementById("control-bar")!;
@@ -20,7 +20,7 @@ const reloadBtnInEndingScreen: HTMLButtonElement = document.getElementById(
     "reload-btn-in-ending-screen"
 ) as HTMLButtonElement;
 
-const machinePlayer = new MachinePlayer();
+const mlPlayer = new MLPlayer();
 
 multiplayerBtn.addEventListener("click", () => startMultiPlayerGame());
 naiveMachineBtn.addEventListener("click", () => startSinglePlayerGame(false));
@@ -38,8 +38,8 @@ function startSinglePlayerGame(shouldTrain: boolean): void {
     disableControlBar();
     if (shouldTrain) {
         const game: TicTacToe = new TicTacToe(
-            machinePlayer
-            // new MachinePlayer()
+            mlPlayer
+            // new MLPlayer()
         );
         game.trainMachine(5000, 250);
         document.addEventListener("completeTraining", () => {
@@ -49,7 +49,7 @@ function startSinglePlayerGame(shouldTrain: boolean): void {
             });
         });
     } else {
-        const game: TicTacToe = new TicTacToe(machinePlayer, new HumanPlayer());
+        const game: TicTacToe = new TicTacToe(mlPlayer, new HumanPlayer());
         game.start(false);
     }
 }

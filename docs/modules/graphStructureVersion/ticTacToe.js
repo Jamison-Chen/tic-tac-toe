@@ -1,4 +1,5 @@
-import MachinePlayer from "./machinePlayer.js";
+import { isAutoPlayer } from "./player.js";
+import MLPlayer from "./mlPlayer.js";
 import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 class Board {
@@ -43,7 +44,7 @@ export default class TicTacToe {
             const [r, c] = e.detail.position;
             (_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[r][c].setMark(e.detail.markPlaying);
             const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
-            if (!(opponent instanceof HumanPlayer)) {
+            if (isAutoPlayer(opponent)) {
                 opponent.moveWithOpponent([r, c], this.board.matrix);
             }
             this.judge();
@@ -62,7 +63,7 @@ export default class TicTacToe {
             if (e.detail.winner)
                 e.detail.winner.winCount++;
             for (const player of [this.player1, this.player2]) {
-                if (player instanceof MachinePlayer) {
+                if (player instanceof MLPlayer) {
                     player.backPropagate(e.detail.winnerMark === player.markPlaying
                         ? "win"
                         : e.detail.winnerMark === null
@@ -91,7 +92,7 @@ export default class TicTacToe {
         this.onStop = () => {
             this.printTrainResult();
             for (const player of [this.player1, this.player2]) {
-                if (player instanceof MachinePlayer)
+                if (player instanceof MLPlayer)
                     player.printDatabaseInfo();
             }
             this.resetTrainResultOfCurrentEpoch();

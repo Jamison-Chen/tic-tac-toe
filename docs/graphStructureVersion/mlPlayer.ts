@@ -1,4 +1,4 @@
-import Player from "./player.js";
+import { AutoPlayer, Player } from "./player.js";
 import { Cell, MovePositionEvent } from "./ticTacToe.js";
 
 class Node {
@@ -24,7 +24,7 @@ class Node {
     }
 }
 
-export default class MachinePlayer implements Player {
+export default class MLPlayer implements Player, AutoPlayer {
     private path: string[];
     private database: { [hashVal: string]: Node };
     public markPlaying: "O" | "X" | null;

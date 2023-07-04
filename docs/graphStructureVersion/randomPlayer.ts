@@ -1,7 +1,7 @@
-import Player from "./player";
+import { AutoPlayer, Player } from "./player";
 import { Cell, MovePositionEvent } from "./ticTacToe";
 
-export default class RandomPlayer implements Player {
+export default class RandomPlayer implements Player, AutoPlayer {
     private allChoices: [number, number][];
     private availableChoices: [number, number][];
     public markPlaying: "O" | "X" | null;

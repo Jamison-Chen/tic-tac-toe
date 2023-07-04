@@ -1,5 +1,5 @@
-import Player from "./player";
-import { MovePositionEvent, Cell } from "./ticTacToe";
+import { Player } from "./player";
+import { MovePositionEvent } from "./ticTacToe";
 
 export default class HumanPlayer implements Player {
     public markPlaying: "O" | "X" | null;
@@ -8,10 +8,6 @@ export default class HumanPlayer implements Player {
         this.markPlaying = null;
         this.winCount = 0;
     }
-    public moveWithOpponent(
-        position: [number, number],
-        latestBoard: Cell[][] = []
-    ): void {}
     public select(position: [number, number]): [number, number] {
         setTimeout(() => {
             document.dispatchEvent(

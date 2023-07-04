@@ -16,7 +16,7 @@ class Node {
         this.children = [];
     }
 }
-export default class MachinePlayer {
+export default class MLPlayer {
     constructor() {
         this.database = { BBBBBBBBB: new Node("BBBBBBBBB") };
         this.path = ["BBBBBBBBB"];
