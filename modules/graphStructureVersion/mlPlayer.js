@@ -70,16 +70,13 @@ export default class MLPlayer {
         }
         return result;
     }
-    getRotatedPathInfo(key) {
-        if (this.database.hasOwnProperty(key)) {
-            return { rotatedKey: key, rotateCount: 0 };
-        }
+    getEqivalentPathInfo(key) {
         let newKey = key;
-        for (let i = 1; i < 4; i++) {
-            newKey = this.getClockwiseRotatedKey(newKey, 1);
+        for (let i = 0; i < 4; i++) {
             if (this.database.hasOwnProperty(newKey)) {
                 return { rotatedKey: newKey, rotateCount: i };
             }
+            newKey = this.getClockwiseRotatedKey(newKey, 1);
         }
         throw Error(`Failed to get rotated key of: ${key}`);
     }
@@ -88,7 +85,7 @@ export default class MLPlayer {
         if (rotateCount < 0)
             rotateCount += 4;
         let newKey = key;
-        for (let i = 1; i <= rotateCount; i++) {
+        for (let i = 0; i < rotateCount; i++) {
             const a = newKey.split("");
             newKey = `${a[6]}${a[3]}${a[0]}${a[7]}${a[4]}${a[1]}${a[8]}${a[5]}${a[2]}`;
         }
@@ -97,7 +94,7 @@ export default class MLPlayer {
     moveWithOpponent(position, board) {
         const currentNode = this.database[this.path[this.path.length - 1].rotatedKey];
         this.expand(currentNode);
-        this.path.push(this.getRotatedPathInfo(this.translateBoardToKey(board)));
+        this.path.push(this.getEqivalentPathInfo(this.translateBoardToKey(board)));
     }
     clearPath() {
         this.path = [
@@ -152,7 +149,7 @@ export default class MLPlayer {
             for (const key of this.genAllPossibleNextStateKeys(targetNode.key)) {
                 let keyToAdd = { rotatedKey: key, rotateCount: 0 };
                 try {
-                    keyToAdd = this.getRotatedPathInfo(key);
+                    keyToAdd = this.getEqivalentPathInfo(key);
                 }
                 catch {
                     this.database[key] = new Node(key);

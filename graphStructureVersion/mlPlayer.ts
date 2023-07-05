@@ -94,16 +94,13 @@ export default class MLPlayer implements Player, AutoPlayer {
         }
         return result;
     }
-    private getRotatedPathInfo(key: string): PathInfo {
-        if (this.database.hasOwnProperty(key)) {
-            return { rotatedKey: key, rotateCount: 0 };
-        }
+    private getEqivalentPathInfo(key: string): PathInfo {
         let newKey = key;
-        for (let i = 1; i < 4; i++) {
-            newKey = this.getClockwiseRotatedKey(newKey, 1);
+        for (let i = 0; i < 4; i++) {
             if (this.database.hasOwnProperty(newKey)) {
                 return { rotatedKey: newKey, rotateCount: i };
             }
+            newKey = this.getClockwiseRotatedKey(newKey, 1);
         }
         throw Error(`Failed to get rotated key of: ${key}`);
     }
@@ -111,7 +108,7 @@ export default class MLPlayer implements Player, AutoPlayer {
         rotateCount %= 4;
         if (rotateCount < 0) rotateCount += 4;
         let newKey = key;
-        for (let i = 1; i <= rotateCount; i++) {
+        for (let i = 0; i < rotateCount; i++) {
             const a = newKey.split("");
             newKey = `${a[6]}${a[3]}${a[0]}${a[7]}${a[4]}${a[1]}${a[8]}${a[5]}${a[2]}`;
         }
@@ -122,7 +119,7 @@ export default class MLPlayer implements Player, AutoPlayer {
             this.database[this.path[this.path.length - 1].rotatedKey];
         this.expand(currentNode);
         this.path.push(
-            this.getRotatedPathInfo(this.translateBoardToKey(board))
+            this.getEqivalentPathInfo(this.translateBoardToKey(board))
         );
     }
     public clearPath(): void {
@@ -198,7 +195,7 @@ export default class MLPlayer implements Player, AutoPlayer {
             )) {
                 let keyToAdd: PathInfo = { rotatedKey: key, rotateCount: 0 };
                 try {
-                    keyToAdd = this.getRotatedPathInfo(key);
+                    keyToAdd = this.getEqivalentPathInfo(key);
                 } catch {
                     this.database[key] = new Node(key);
                 }
