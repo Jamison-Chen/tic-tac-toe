@@ -1,12 +1,12 @@
 class Node {
-    constructor(hashVal) {
-        this._hashVal = hashVal;
+    constructor(key) {
+        this._key = key;
         this.score = null;
         this.children = [];
         this.isEndGame = false;
     }
-    get hashVal() {
-        return this._hashVal;
+    get key() {
+        return this._key;
     }
     get isExternal() {
         return this.children.length === 0;
@@ -19,54 +19,93 @@ class Node {
 export default class MLPlayer {
     constructor() {
         this.database = { BBBBBBBBB: new Node("BBBBBBBBB") };
-        this.path = ["BBBBBBBBB"];
+        this.path = [];
         this.markPlaying = null;
         this.winCount = 0;
+        this.clearPath();
     }
-    calcHashVal(board) {
-        let hashVal = "";
+    translateBoardToKey(board) {
+        let key = "";
         for (let r = 0; r < board.length; r++) {
             for (let c = 0; c < board[r].length; c++) {
                 if (board[r][c].mark === " ")
-                    hashVal += "B";
+                    key += "B";
                 else
-                    hashVal += board[r][c].mark;
+                    key += board[r][c].mark;
             }
         }
-        return hashVal;
+        return key;
     }
-    translateHashDiffToMovePos(hashBefore, hashAfter) {
-        for (let i = 0; i < hashBefore.length; i++) {
-            if (hashBefore[i] !== hashAfter[i]) {
+    translateKeyDiffToMovePos(prevKey, currentKey) {
+        for (let i = 0; i < prevKey.length; i++) {
+            if (prevKey[i] !== currentKey[i])
                 return [Math.floor(i / 3), i % 3];
-            }
         }
-        throw Error("Cannot translate hash difference to move posititon...");
+        throw Error("Failed to translate key difference to move posititon...");
     }
-    genAllPossibleNextStateHashVals(currentHashVal) {
-        const markOccurance = {
-            O: 0,
-            X: 0,
-            " ": 0,
-        };
-        for (const mark of currentHashVal)
-            markOccurance[mark]++;
-        const nextStateMark = markOccurance["O"] > markOccurance["X"] ? "X" : "O";
+    getClockwiseRotatedPosition(position, rotateCount) {
+        rotateCount %= 4;
+        if (rotateCount < 0)
+            rotateCount += 4;
+        const [r, c] = position;
+        if (rotateCount === 0)
+            return [r, c];
+        else if (rotateCount === 1)
+            return [c, 2 - r];
+        else if (rotateCount === 2)
+            return [2 - r, 2 - c];
+        else
+            return [2 - c, r];
+    }
+    genAllPossibleNextStateKeys(currentKey) {
+        const markCount = { O: 0, X: 0, B: 0 };
+        for (const mark of currentKey)
+            markCount[mark]++;
+        const nextStateMark = markCount.O > markCount.X ? "X" : "O";
         const result = [];
-        for (let i = 0; i < currentHashVal.length; i++) {
-            if (currentHashVal[i] === "B") {
-                result.push(`${currentHashVal.substring(0, i)}${nextStateMark}${currentHashVal.substring(i + 1)}`);
+        for (let i = 0; i < currentKey.length; i++) {
+            if (currentKey[i] === "B") {
+                result.push(`${currentKey.substring(0, i)}${nextStateMark}${currentKey.substring(i + 1)}`);
             }
         }
         return result;
     }
+    getRotatedPathInfo(key) {
+        if (this.database.hasOwnProperty(key)) {
+            return { rotatedKey: key, rotateCount: 0 };
+        }
+        let newKey = key;
+        for (let i = 1; i < 4; i++) {
+            newKey = this.getClockwiseRotatedKey(newKey, 1);
+            if (this.database.hasOwnProperty(newKey)) {
+                return { rotatedKey: newKey, rotateCount: i };
+            }
+        }
+        throw Error(`Failed to get rotated key of: ${key}`);
+    }
+    getClockwiseRotatedKey(key, rotateCount) {
+        rotateCount %= 4;
+        if (rotateCount < 0)
+            rotateCount += 4;
+        let newKey = key;
+        for (let i = 1; i <= rotateCount; i++) {
+            const a = newKey.split("");
+            newKey = `${a[6]}${a[3]}${a[0]}${a[7]}${a[4]}${a[1]}${a[8]}${a[5]}${a[2]}`;
+        }
+        return newKey;
+    }
     moveWithOpponent(position, board) {
-        const currentNode = this.database[this.path[this.path.length - 1]];
+        const currentNode = this.database[this.path[this.path.length - 1].rotatedKey];
         this.expand(currentNode);
-        this.path.push(this.calcHashVal(board));
+        this.path.push(this.getRotatedPathInfo(this.translateBoardToKey(board)));
     }
     clearPath() {
-        this.path = ["BBBBBBBBB"];
+        this.path = [
+            {
+                rotatedKey: "BBBBBBBBB",
+                rotateCount: 0,
+            },
+        ];
     }
     inPlaceShuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -75,22 +114,32 @@ export default class MLPlayer {
         }
     }
     select() {
-        const currentHashVal = this.path[this.path.length - 1];
-        const currentNode = this.database[currentHashVal];
+        const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
+        const currentNode = this.database[rotatedKey];
         this.expand(currentNode);
         this.inPlaceShuffle(currentNode.children);
-        const childNodes = currentNode.children.map((hashVal) => this.database[hashVal]);
-        let bestChildNode = childNodes.find((node) => node.score === null);
-        if (!bestChildNode) {
+        const childNodesWithRotateCount = currentNode.children.map((child) => {
+            return {
+                node: this.database[child.rotatedKey],
+                rotateCount: child.rotateCount,
+            };
+        });
+        let bestChildNodeWithRotateCount = childNodesWithRotateCount.find((n) => n.node.score === null);
+        if (!bestChildNodeWithRotateCount) {
             if (this.markPlaying === "O") {
-                bestChildNode = childNodes.reduce((max, node) => (max.score > node.score ? max : node), childNodes[0]);
+                bestChildNodeWithRotateCount = childNodesWithRotateCount.reduce((max, n) => (max.node.score > n.node.score ? max : n), childNodesWithRotateCount[0]);
             }
             else {
-                bestChildNode = childNodes.reduce((min, node) => (min.score < node.score ? min : node), childNodes[0]);
+                bestChildNodeWithRotateCount = childNodesWithRotateCount.reduce((min, n) => (min.node.score < n.node.score ? min : n), childNodesWithRotateCount[0]);
             }
         }
-        this.path.push(bestChildNode.hashVal);
-        const position = this.translateHashDiffToMovePos(currentHashVal, bestChildNode.hashVal);
+        this.path.push({
+            rotatedKey: bestChildNodeWithRotateCount.node.key,
+            rotateCount: bestChildNodeWithRotateCount.rotateCount + rotateCount,
+        });
+        const rotatedBestChildNodeKey = this.getClockwiseRotatedKey(bestChildNodeWithRotateCount.node.key, -bestChildNodeWithRotateCount.rotateCount);
+        let position = this.translateKeyDiffToMovePos(currentNode.key, rotatedBestChildNodeKey);
+        position = this.getClockwiseRotatedPosition(position, -rotateCount);
         setTimeout(() => {
             document.dispatchEvent(new CustomEvent("move", {
                 detail: { position, markPlaying: this.markPlaying },
@@ -100,17 +149,25 @@ export default class MLPlayer {
     }
     expand(targetNode) {
         if (!targetNode.isEndGame && targetNode.isExternal) {
-            for (const hashVal of this.genAllPossibleNextStateHashVals(targetNode.hashVal)) {
-                targetNode.children.push(hashVal);
-                if (!this.database.hasOwnProperty(hashVal)) {
-                    this.database[hashVal] = new Node(hashVal);
+            for (const key of this.genAllPossibleNextStateKeys(targetNode.key)) {
+                let keyToAdd = { rotatedKey: key, rotateCount: 0 };
+                try {
+                    keyToAdd = this.getRotatedPathInfo(key);
+                }
+                catch {
+                    this.database[key] = new Node(key);
+                }
+                if (!targetNode.children
+                    .map((e) => e.rotatedKey)
+                    .includes(keyToAdd.rotatedKey)) {
+                    targetNode.children.push(keyToAdd);
                 }
             }
         }
     }
     backPropagate(state) {
         const depth = this.path.length - 1;
-        const endGameNode = this.database[this.path[depth]];
+        const endGameNode = this.database[this.path[depth].rotatedKey];
         endGameNode.markAsEndGame();
         if (state === "win") {
             endGameNode.score =
@@ -124,19 +181,19 @@ export default class MLPlayer {
             endGameNode.score = 0;
         const remainingPath = this.path.slice(0, -1);
         while (remainingPath.length > 0) {
-            const parentHashVal = remainingPath.pop();
-            const childScores = this.database[parentHashVal].children
-                .map((chv) => this.database[chv])
+            const parentKey = remainingPath.pop().rotatedKey;
+            const childScores = this.database[parentKey].children
+                .map((child) => this.database[child.rotatedKey])
                 .map((node) => node.score);
             if (childScores.find((score) => score === null)) {
-                this.database[parentHashVal].score = null;
+                this.database[parentKey].score = null;
             }
             else {
                 if (remainingPath.length % 2 === 1) {
-                    this.database[parentHashVal].score = Math.min(...childScores);
+                    this.database[parentKey].score = Math.min(...childScores);
                 }
                 else {
-                    this.database[parentHashVal].score = Math.max(...childScores);
+                    this.database[parentKey].score = Math.max(...childScores);
                 }
             }
         }

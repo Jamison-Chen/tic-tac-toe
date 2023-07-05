@@ -22,7 +22,7 @@ function startSinglePlayerGame(shouldTrain) {
     disableControlBar();
     if (shouldTrain) {
         const game = new TicTacToe(mlPlayer, new MLPlayer());
-        game.trainMachine(5000, 250);
+        game.trainMachine(2500, 250);
         document.addEventListener("completeTraining", () => {
             setTimeout(() => {
                 game.player2 = new HumanPlayer();
