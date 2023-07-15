@@ -131,19 +131,13 @@ export class GraphPlayer implements Player, AutoPlayer {
             },
         ];
     }
-    private inPlaceShuffle(array: any[]): void {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
     public select(): [number, number] {
         const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
         const currentNode = this.database[rotatedKey];
 
         this.expand(currentNode);
 
-        this.inPlaceShuffle(currentNode.children);
+        Utils.inPlaceShuffle(currentNode.children);
         const childNodesWithRotateCount = currentNode.children.map((child) => {
             return {
                 node: this.database[child.rotatedKey],

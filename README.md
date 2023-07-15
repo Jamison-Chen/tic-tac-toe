@@ -2,10 +2,20 @@
 
 This project is a game implemented with Reinforcement Learning and the Minimax Algorithm.
 
-## Store Data Using Tree Structure
+## How We Train The Machine?
+
+### Expand, Select, Backpropagate
 
 TODO
 
-## Store Data Using Graph Structure
+### Graph Data Structure
+
+TODO
+
+### Borad Rotation
+
+TODO
+
+### The Minimax Algorithm
 
 TODO
