@@ -152,7 +152,7 @@ export class GraphPlayer {
             }
         }
     }
-    backPropagate(state) {
+    backpropagate(state) {
         const depth = this.path.length - 1;
         const endGameNode = this.database[this.path[depth].rotatedKey];
         endGameNode.markAsEndGame();

@@ -1,4 +1,4 @@
-import Playground from "./playground.js";
+import { Playground } from "./playground.js";
 import { GraphPlayer } from "./mlPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 const controlBar = document.getElementById("control-bar");
@@ -8,33 +8,34 @@ const naiveMachineBtn = document.getElementById("naive-machine-btn");
 const trainedMachineBtn = document.getElementById("trained-machine-btn");
 const reloadBtnInEndingScreen = document.getElementById("reload-btn-in-ending-screen");
 const mlPlayer = new GraphPlayer();
-multiplayerBtn.addEventListener("click", () => startMultiPlayerGame());
-naiveMachineBtn.addEventListener("click", () => startSinglePlayerGame(false));
-trainedMachineBtn.addEventListener("click", () => startSinglePlayerGame(true));
+multiplayerBtn.addEventListener("click", () => startP2PGame());
+naiveMachineBtn.addEventListener("click", () => startP2CGame(false));
+trainedMachineBtn.addEventListener("click", () => startP2CGame(true));
 reloadBtnInControlBar.addEventListener("click", () => location.reload());
 reloadBtnInEndingScreen.addEventListener("click", () => location.reload());
-function startMultiPlayerGame() {
+function startP2PGame() {
     moveControlBar();
     const game = new Playground(new HumanPlayer(), new HumanPlayer());
     game.start(false);
 }
-function startSinglePlayerGame(shouldTrain) {
+function startP2CGame(shouldTrain) {
     moveControlBar();
     if (shouldTrain) {
         const game = new Playground(mlPlayer, new GraphPlayer());
-        game.trainMachine(2500, 250);
-        document.addEventListener("completeTraining", () => {
-            setTimeout(() => {
-                game.player2 = new HumanPlayer();
-                game.start(false, true);
-            });
-        });
+        document.addEventListener("completeTraining", onCompleteTraining);
+        game.trainMachine(32, 16);
     }
     else {
         const game = new Playground(mlPlayer, new HumanPlayer());
-        game.start(false);
+        game.start();
     }
 }
 function moveControlBar() {
     controlBar.classList.add("bottom");
 }
+const onCompleteTraining = (e) => {
+    setTimeout(() => {
+        e.detail.game.player2 = new HumanPlayer();
+        e.detail.game.start(false, true);
+    });
+};

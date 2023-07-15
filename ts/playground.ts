@@ -8,6 +8,10 @@ export interface MovePositionEvent {
     markPlaying: "O" | "X";
 }
 
+export interface CompleteTrainingEvent {
+    game: Playground;
+}
+
 interface GameOverEvent {
     winner: Player | null;
     winnerMark: "O" | "X" | null;
@@ -26,31 +30,31 @@ class Board {
 }
 
 export class Cell {
-    private _div: HTMLDivElement;
+    private div: HTMLDivElement;
     private _mark: " " | "O" | "X";
     private onClick: EventListener;
     public constructor(div: HTMLDivElement, onClick: EventListener) {
-        this._div = div;
+        this.div = div;
         this._mark = " ";
         this.onClick = onClick;
-        this._div.classList.remove("O", "X");
-        this._div.removeEventListener("click", this.onClick);
-        this._div.addEventListener("click", this.onClick, { once: true });
+        this.div.classList.remove("O", "X");
+        this.div.removeEventListener("click", this.onClick);
+        this.div.addEventListener("click", this.onClick, { once: true });
     }
     public setMark(mark: "O" | "X"): void {
         this._mark = mark;
-        this._div.classList.add(this._mark);
-        this._div.removeEventListener("click", this.onClick);
+        this.div.classList.add(this._mark);
+        this.div.removeEventListener("click", this.onClick);
     }
-    public get mark(): " " | "O" | "X" {
+    public get mark(): typeof this._mark {
         return this._mark;
     }
 }
 
-export default class Playground {
-    public endingScreenDiv: HTMLElement =
+export class Playground {
+    public static endingScreenDiv: HTMLElement =
         document.getElementById("ending-screen")!;
-    public endingMessageDiv: HTMLElement =
+    public static endingMessageDiv: HTMLElement =
         document.getElementById("ending-message")!;
     public player1: Player;
     public player2: Player;
@@ -116,7 +120,7 @@ export default class Playground {
 
         for (const player of [this.player1, this.player2]) {
             if (player instanceof GraphPlayer) {
-                player.backPropagate(
+                player.backpropagate(
                     e.detail.winnerMark === player.markPlaying
                         ? "win"
                         : e.detail.winnerMark === null
@@ -127,10 +131,10 @@ export default class Playground {
             } else if (player instanceof RandomPlayer) {
                 player.resetChoices();
             } else if (player instanceof HumanPlayer) {
-                this.endingMessageDiv.innerHTML = e.detail.winner
+                Playground.endingMessageDiv.innerHTML = e.detail.winner
                     ? `${e.detail.winnerMark} wins!`
                     : "Draw!";
-                this.endingScreenDiv.className = "show";
+                Playground.endingScreenDiv.className = "show";
             }
         }
 
@@ -141,15 +145,22 @@ export default class Playground {
         });
     };
     private onStop = (): void => {
-        this.printTrainResult();
-        for (const player of [this.player1, this.player2]) {
-            if (player instanceof GraphPlayer) player.printDatabaseInfo();
+        if (this.isTraining) {
+            this.printResultOfCurrentEpoch();
+            for (const player of [this.player1, this.player2]) {
+                if (player instanceof GraphPlayer) player.printDatabaseInfo();
+            }
+            this.resetResultOfCurrentEpoch();
         }
-        this.resetTrainResultOfCurrentEpoch();
         this.remainingEpoch--;
         setTimeout(() => {
-            if (this.isTraining && this.remainingEpoch <= 0) {
-                document.dispatchEvent(new CustomEvent("completeTraining"));
+            if (this.isTraining && this.remainingEpoch === 0) {
+                this.isTraining = false;
+                document.dispatchEvent(
+                    new CustomEvent<CompleteTrainingEvent>("completeTraining", {
+                        detail: { game: this },
+                    })
+                );
             } else if (this.nonStopping || this.remainingEpoch > 0) {
                 this.remainingGames = this.gamesPerEpoch;
                 this.start();
@@ -271,7 +282,7 @@ export default class Playground {
             this.player1.winCount = 0;
             this.player2.winCount = 0;
         }
-        this.endingScreenDiv.classList.remove("show");
+        Playground.endingScreenDiv.classList.remove("show");
         this.board = this.initBoard();
 
         // Choose and record first player
@@ -296,7 +307,7 @@ export default class Playground {
         this.remainingGames = batch;
         this.start(true);
     }
-    private printTrainResult(): void {
+    private printResultOfCurrentEpoch(): void {
         console.log(
             `Game start with P1: ${this.p1StartCount} / P2: ${this.p2StartCount}`
         );
@@ -317,7 +328,7 @@ export default class Playground {
             `P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${drawRate}%`
         );
     }
-    private resetTrainResultOfCurrentEpoch(): void {
+    private resetResultOfCurrentEpoch(): void {
         this.p1StartCount = 0;
         this.p2StartCount = 0;
         this.player1.winCount = 0;

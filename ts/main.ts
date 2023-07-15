@@ -1,4 +1,4 @@
-import Playground from "./playground.js";
+import { Playground, CompleteTrainingEvent } from "./playground.js";
 import { GraphPlayer } from "./mlPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 
@@ -15,42 +15,46 @@ const naiveMachineBtn: HTMLButtonElement = document.getElementById(
 const trainedMachineBtn: HTMLButtonElement = document.getElementById(
     "trained-machine-btn"
 ) as HTMLButtonElement;
-
 const reloadBtnInEndingScreen: HTMLButtonElement = document.getElementById(
     "reload-btn-in-ending-screen"
 ) as HTMLButtonElement;
 
 const mlPlayer = new GraphPlayer();
 
-multiplayerBtn.addEventListener("click", () => startMultiPlayerGame());
-naiveMachineBtn.addEventListener("click", () => startSinglePlayerGame(false));
-trainedMachineBtn.addEventListener("click", () => startSinglePlayerGame(true));
+multiplayerBtn.addEventListener("click", () => startP2PGame());
+naiveMachineBtn.addEventListener("click", () => startP2CGame(false));
+trainedMachineBtn.addEventListener("click", () => startP2CGame(true));
 reloadBtnInControlBar.addEventListener("click", () => location.reload());
 reloadBtnInEndingScreen.addEventListener("click", () => location.reload());
 
-function startMultiPlayerGame(): void {
+function startP2PGame(): void {
     moveControlBar();
     const game = new Playground(new HumanPlayer(), new HumanPlayer());
     game.start(false);
 }
 
-function startSinglePlayerGame(shouldTrain: boolean): void {
+function startP2CGame(shouldTrain: boolean): void {
     moveControlBar();
     if (shouldTrain) {
         const game = new Playground(mlPlayer, new GraphPlayer());
-        game.trainMachine(2500, 250);
-        document.addEventListener("completeTraining", () => {
-            setTimeout(() => {
-                game.player2 = new HumanPlayer();
-                game.start(false, true);
-            });
-        });
+        document.addEventListener(
+            "completeTraining",
+            onCompleteTraining as EventListener
+        );
+        game.trainMachine(32, 16);
     } else {
         const game = new Playground(mlPlayer, new HumanPlayer());
-        game.start(false);
+        game.start();
     }
 }
 
 function moveControlBar(): void {
     controlBar.classList.add("bottom");
 }
+
+const onCompleteTraining = (e: CustomEvent<CompleteTrainingEvent>) => {
+    setTimeout(() => {
+        e.detail.game.player2 = new HumanPlayer();
+        e.detail.game.start(false, true);
+    });
+};

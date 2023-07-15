@@ -13,7 +13,7 @@ class Node {
         this.children = [];
         this.isEndGame = false;
     }
-    public get key(): string {
+    public get key(): typeof this._key {
         return this._key;
     }
     public get isExternal(): boolean {
@@ -195,7 +195,7 @@ export class GraphPlayer implements Player, AutoPlayer {
             }
         }
     }
-    public backPropagate(state: "win" | "lose" | "tie"): void {
+    public backpropagate(state: "win" | "lose" | "tie"): void {
         const depth = this.path.length - 1;
         const endGameNode = this.database[this.path[depth].rotatedKey];
         endGameNode.markAsEndGame();

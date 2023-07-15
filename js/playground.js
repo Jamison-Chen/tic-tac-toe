@@ -13,26 +13,24 @@ class Board {
 }
 export class Cell {
     constructor(div, onClick) {
-        this._div = div;
+        this.div = div;
         this._mark = " ";
         this.onClick = onClick;
-        this._div.classList.remove("O", "X");
-        this._div.removeEventListener("click", this.onClick);
-        this._div.addEventListener("click", this.onClick, { once: true });
+        this.div.classList.remove("O", "X");
+        this.div.removeEventListener("click", this.onClick);
+        this.div.addEventListener("click", this.onClick, { once: true });
     }
     setMark(mark) {
         this._mark = mark;
-        this._div.classList.add(this._mark);
-        this._div.removeEventListener("click", this.onClick);
+        this.div.classList.add(this._mark);
+        this.div.removeEventListener("click", this.onClick);
     }
     get mark() {
         return this._mark;
     }
 }
-export default class Playground {
+export class Playground {
     constructor(player1, player2 = new RandomPlayer()) {
-        this.endingScreenDiv = document.getElementById("ending-screen");
-        this.endingMessageDiv = document.getElementById("ending-message");
         this.onClick = (e) => {
             const position = e.currentTarget.id
                 .split(",")
@@ -64,7 +62,7 @@ export default class Playground {
                 e.detail.winner.winCount++;
             for (const player of [this.player1, this.player2]) {
                 if (player instanceof GraphPlayer) {
-                    player.backPropagate(e.detail.winnerMark === player.markPlaying
+                    player.backpropagate(e.detail.winnerMark === player.markPlaying
                         ? "win"
                         : e.detail.winnerMark === null
                             ? "tie"
@@ -75,10 +73,10 @@ export default class Playground {
                     player.resetChoices();
                 }
                 else if (player instanceof HumanPlayer) {
-                    this.endingMessageDiv.innerHTML = e.detail.winner
+                    Playground.endingMessageDiv.innerHTML = e.detail.winner
                         ? `${e.detail.winnerMark} wins!`
                         : "Draw!";
-                    this.endingScreenDiv.className = "show";
+                    Playground.endingScreenDiv.className = "show";
                 }
             }
             this.remainingGames--;
@@ -90,16 +88,21 @@ export default class Playground {
             });
         };
         this.onStop = () => {
-            this.printTrainResult();
-            for (const player of [this.player1, this.player2]) {
-                if (player instanceof GraphPlayer)
-                    player.printDatabaseInfo();
+            if (this.isTraining) {
+                this.printResultOfCurrentEpoch();
+                for (const player of [this.player1, this.player2]) {
+                    if (player instanceof GraphPlayer)
+                        player.printDatabaseInfo();
+                }
+                this.resetResultOfCurrentEpoch();
             }
-            this.resetTrainResultOfCurrentEpoch();
             this.remainingEpoch--;
             setTimeout(() => {
-                if (this.isTraining && this.remainingEpoch <= 0) {
-                    document.dispatchEvent(new CustomEvent("completeTraining"));
+                if (this.isTraining && this.remainingEpoch === 0) {
+                    this.isTraining = false;
+                    document.dispatchEvent(new CustomEvent("completeTraining", {
+                        detail: { game: this },
+                    }));
                 }
                 else if (this.nonStopping || this.remainingEpoch > 0) {
                     this.remainingGames = this.gamesPerEpoch;
@@ -208,7 +211,7 @@ export default class Playground {
             this.player1.winCount = 0;
             this.player2.winCount = 0;
         }
-        this.endingScreenDiv.classList.remove("show");
+        Playground.endingScreenDiv.classList.remove("show");
         this.board = this.initBoard();
         // Choose and record first player
         if (Math.random() >= 0.5) {
@@ -233,7 +236,7 @@ export default class Playground {
         this.remainingGames = batch;
         this.start(true);
     }
-    printTrainResult() {
+    printResultOfCurrentEpoch() {
         console.log(`Game start with P1: ${this.p1StartCount} / P2: ${this.p2StartCount}`);
         const p1WinningRate = Math.round((this.player1.winCount / this.gamesPerEpoch) * 10000) /
             100;
@@ -245,10 +248,12 @@ export default class Playground {
             10000) / 100;
         console.log(`P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${drawRate}%`);
     }
-    resetTrainResultOfCurrentEpoch() {
+    resetResultOfCurrentEpoch() {
         this.p1StartCount = 0;
         this.p2StartCount = 0;
         this.player1.winCount = 0;
         this.player2.winCount = 0;
     }
 }
+Playground.endingScreenDiv = document.getElementById("ending-screen");
+Playground.endingMessageDiv = document.getElementById("ending-message");
