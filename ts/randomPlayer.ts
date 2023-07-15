@@ -1,5 +1,5 @@
 import { AutoPlayer, Player } from "./player";
-import { Cell, MovePositionEvent } from "./playground";
+import { Cell, MoveEvent } from "./playground";
 
 export default class RandomPlayer implements Player, AutoPlayer {
     private allChoices: [number, number][];
@@ -41,7 +41,7 @@ export default class RandomPlayer implements Player, AutoPlayer {
         this.moveWithOpponent(position);
         setTimeout(() => {
             document.dispatchEvent(
-                new CustomEvent<MovePositionEvent>("move", {
+                new CustomEvent<MoveEvent>("move", {
                     detail: { position, markPlaying: this.markPlaying! },
                 })
             );

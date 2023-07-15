@@ -1,5 +1,5 @@
 import { AutoPlayer, Player } from "./player.js";
-import { Cell, MovePositionEvent } from "./playground.js";
+import { Cell, MoveEvent } from "./playground.js";
 import Utils from "./utils.js";
 
 class Node {
@@ -124,7 +124,7 @@ export class GraphPlayer implements Player, AutoPlayer {
     public clearPath(): void {
         this.path = [{ rotatedKey: "BBBBBBBBB", rotateCount: 0 }];
     }
-    public select(): [number, number] {
+    public select(shouldDispatchEvent: boolean = true): [number, number] {
         const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
         const currentNode = this.database[rotatedKey];
 
@@ -166,14 +166,15 @@ export class GraphPlayer implements Player, AutoPlayer {
             rotatedBestChildNodeKey
         );
         position = this.getClockwiseRotatedPosition(position, -rotateCount);
-
-        setTimeout(() => {
-            document.dispatchEvent(
-                new CustomEvent<MovePositionEvent>("move", {
-                    detail: { position, markPlaying: this.markPlaying! },
-                })
-            );
-        });
+        if (shouldDispatchEvent) {
+            setTimeout(() => {
+                document.dispatchEvent(
+                    new CustomEvent<MoveEvent>("move", {
+                        detail: { position, markPlaying: this.markPlaying! },
+                    })
+                );
+            });
+        }
         return position;
     }
     private expand(targetNode: Node): void {

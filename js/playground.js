@@ -62,10 +62,10 @@ export class Playground {
                 e.detail.winner.winCount++;
             for (const player of [this.player1, this.player2]) {
                 if (player instanceof GraphPlayer) {
-                    player.backpropagate(e.detail.winnerMark === player.markPlaying
-                        ? "win"
-                        : e.detail.winnerMark === null
-                            ? "tie"
+                    player.backpropagate(e.detail.winner === null
+                        ? "tie"
+                        : e.detail.winner.markPlaying === player.markPlaying
+                            ? "win"
                             : "lose");
                     player.clearPath();
                 }
@@ -74,7 +74,7 @@ export class Playground {
                 }
                 else if (player instanceof HumanPlayer) {
                     Playground.endingMessageDiv.innerHTML = e.detail.winner
-                        ? `${e.detail.winnerMark} wins!`
+                        ? `${e.detail.winner.markPlaying} wins!`
                         : "Draw!";
                     Playground.endingScreenDiv.className = "show";
                 }
@@ -90,10 +90,6 @@ export class Playground {
         this.onStop = () => {
             if (this.isTraining) {
                 this.printResultOfCurrentEpoch();
-                for (const player of [this.player1, this.player2]) {
-                    if (player instanceof GraphPlayer)
-                        player.printDatabaseInfo();
-                }
                 this.resetResultOfCurrentEpoch();
             }
             this.remainingEpoch--;
@@ -175,15 +171,16 @@ export class Playground {
             for (const player of [this.player1, this.player2]) {
                 if (player.markPlaying === winnerMark) {
                     setTimeout(() => document.dispatchEvent(new CustomEvent("gameOver", {
-                        detail: { winner: player, winnerMark },
+                        detail: { winner: player },
                     })));
-                    break;
+                    return;
                 }
             }
+            throw Error(`Cannot find winner with mark: ${winnerMark}`);
         }
         else if (!((_c = this.board) === null || _c === void 0 ? void 0 : _c.matrix.some((row) => row.some((cell) => cell.mark === " ")))) {
             setTimeout(() => document.dispatchEvent(new CustomEvent("gameOver", {
-                detail: { winner: null, winnerMark },
+                detail: { winner: null },
             })));
         }
         else {
@@ -247,6 +244,10 @@ export class Playground {
             this.gamesPerEpoch) *
             10000) / 100;
         console.log(`P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${drawRate}%`);
+        for (const player of [this.player1, this.player2]) {
+            if (player instanceof GraphPlayer)
+                player.printDatabaseInfo();
+        }
     }
     resetResultOfCurrentEpoch() {
         this.p1StartCount = 0;
@@ -257,3 +258,157 @@ export class Playground {
 }
 Playground.endingScreenDiv = document.getElementById("ending-screen");
 Playground.endingMessageDiv = document.getElementById("ending-message");
+export class TrainingGround extends Playground {
+    constructor(player1, player2) {
+        super(player1, player2);
+        document.removeEventListener("move", this.onPlayerMove);
+        document.removeEventListener("callNextPlayer", this.onCallNextPlayer);
+        document.removeEventListener("gameOver", this.onGameOver);
+        document.removeEventListener("stop", this.onStop);
+        this.isGameRunning = false;
+    }
+    trainMachine(trainTimes, batch) {
+        this.isTraining = true;
+        this.gamesPerEpoch = batch;
+        this.remainingEpoch = Math.floor(trainTimes / batch);
+        const remainder = trainTimes % batch;
+        while (this.remainingEpoch > 0) {
+            this.remainingGames = batch;
+            this.startTrainEpoch();
+            this.printResultOfCurrentEpoch();
+            this.resetResultOfCurrentEpoch();
+            this.remainingEpoch--;
+        }
+        if (remainder > 0) {
+            this.remainingGames = remainder;
+            this.startTrainEpoch();
+            this.printResultOfCurrentEpoch();
+            this.resetResultOfCurrentEpoch();
+        }
+        document.dispatchEvent(new CustomEvent("completeTraining", {
+            detail: { game: null },
+        }));
+    }
+    startTrainEpoch() {
+        var _a, _b;
+        this.prepare();
+        while (this.remainingGames > 0) {
+            this.playerMove();
+            const winner = this.judge();
+            if (!this.isGameRunning) {
+                if (winner)
+                    winner.winCount++;
+                for (const player of [this.player1, this.player2]) {
+                    if (player instanceof GraphPlayer) {
+                        player.backpropagate(winner === null
+                            ? "tie"
+                            : winner.markPlaying === player.markPlaying
+                                ? "win"
+                                : "lose");
+                        player.clearPath();
+                    }
+                    else if (player instanceof RandomPlayer) {
+                        player.resetChoices();
+                    }
+                }
+                this.remainingGames--;
+                if (this.remainingGames > 0)
+                    this.prepare();
+                else
+                    break;
+            }
+            else {
+                const oldPlayerMark = (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.markPlaying;
+                this.currentPlayer =
+                    this.currentPlayer === this.player1
+                        ? this.player2
+                        : this.player1;
+                (_b = this.board) === null || _b === void 0 ? void 0 : _b.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
+            }
+        }
+    }
+    prepare() {
+        this.board = this.initBoard();
+        this.isGameRunning = true;
+        if (Math.random() >= 0.5) {
+            this.currentPlayer = this.player1;
+            this.player1.markPlaying = "O";
+            this.player2.markPlaying = "X";
+            this.p1StartCount++;
+        }
+        else {
+            this.currentPlayer = this.player2;
+            this.player1.markPlaying = "X";
+            this.player2.markPlaying = "O";
+            this.p2StartCount++;
+        }
+    }
+    playerMove() {
+        var _a, _b, _c;
+        const [r, c] = (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.select(false);
+        (_b = this.board) === null || _b === void 0 ? void 0 : _b.matrix[r][c].setMark((_c = this.currentPlayer) === null || _c === void 0 ? void 0 : _c.markPlaying);
+        const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
+        if (isAutoPlayer(opponent)) {
+            opponent.moveWithOpponent([r, c], this.board.matrix);
+        }
+    }
+    judge() {
+        var _a, _b, _c;
+        let winnerMark = null;
+        // Check each row
+        for (let i = 0; i < this.board.matrix.length; i++) {
+            if ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i].every((cell) => {
+                var _a;
+                return (cell.mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i][0].mark) &&
+                    this.board.matrix[i][0].mark !== " ");
+            })) {
+                winnerMark = this.board.matrix[i][0].mark;
+                break;
+            }
+        }
+        if (winnerMark === null) {
+            // Check each column
+            for (let i = 0; i < this.board.matrix[0].length; i++) {
+                if ((_b = this.board) === null || _b === void 0 ? void 0 : _b.matrix.every((row) => {
+                    var _a;
+                    return (row[i].mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[0][i].mark) &&
+                        this.board.matrix[0][i].mark !== " ");
+                })) {
+                    winnerMark = this.board.matrix[0][i].mark;
+                    break;
+                }
+            }
+        }
+        if (winnerMark === null) {
+            // Check each diagnal
+            const diagnal1 = [
+                this.board.matrix[0][0].mark,
+                this.board.matrix[1][1].mark,
+                this.board.matrix[2][2].mark,
+            ];
+            const diagnal2 = [
+                this.board.matrix[0][2].mark,
+                this.board.matrix[1][1].mark,
+                this.board.matrix[2][0].mark,
+            ];
+            if (diagnal1.every((mark) => mark === diagnal1[0] && diagnal1[0] !== " ")) {
+                winnerMark = diagnal1[0];
+            }
+            else if (diagnal2.every((mark) => mark === diagnal2[0] && diagnal2[0] !== " ")) {
+                winnerMark = diagnal2[0];
+            }
+        }
+        if (winnerMark) {
+            this.isGameRunning = false;
+            for (const player of [this.player1, this.player2]) {
+                if (player.markPlaying === winnerMark)
+                    return player;
+            }
+            throw Error(`Cannot find winner with mark: ${winnerMark}`);
+        }
+        else if (!((_c = this.board) === null || _c === void 0 ? void 0 : _c.matrix.some((row) => row.some((cell) => cell.mark === " ")))) {
+            this.isGameRunning = false;
+        }
+        return null;
+    }
+}

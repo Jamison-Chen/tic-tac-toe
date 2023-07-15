@@ -1,4 +1,4 @@
-import { Playground } from "./playground.js";
+import { Playground, TrainingGround, } from "./playground.js";
 import { GraphPlayer } from "./mlPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 const controlBar = document.getElementById("control-bar");
@@ -21,9 +21,13 @@ function startP2PGame() {
 function startP2CGame(shouldTrain) {
     moveControlBar();
     if (shouldTrain) {
-        const game = new Playground(mlPlayer, new GraphPlayer());
         document.addEventListener("completeTraining", onCompleteTraining);
-        game.trainMachine(32, 16);
+        // Visualize training process (event-driven, very slow)
+        // const game = new Playground(mlPlayer, new GraphPlayer());
+        // game.trainMachine(24, 12);
+        // Hide training process (iteration, very fast)
+        const game = new TrainingGround(mlPlayer, new GraphPlayer());
+        game.trainMachine(2400, 400);
     }
     else {
         const game = new Playground(mlPlayer, new HumanPlayer());
@@ -35,7 +39,14 @@ function moveControlBar() {
 }
 const onCompleteTraining = (e) => {
     setTimeout(() => {
-        e.detail.game.player2 = new HumanPlayer();
-        e.detail.game.start(false, true);
+        if (e.detail.game) {
+            e.detail.game.player1 = mlPlayer;
+            e.detail.game.player2 = new HumanPlayer();
+            e.detail.game.start(false, true);
+        }
+        else {
+            const game = new Playground(mlPlayer, new HumanPlayer());
+            game.start(false, true);
+        }
     });
 };

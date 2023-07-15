@@ -3,18 +3,17 @@ import { GraphPlayer } from "./mlPlayer.js";
 import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 
-export interface MovePositionEvent {
+export interface MoveEvent {
     position: [number, number];
     markPlaying: "O" | "X";
 }
 
 export interface CompleteTrainingEvent {
-    game: Playground;
+    game: Playground | null;
 }
 
 interface GameOverEvent {
     winner: Player | null;
-    winnerMark: "O" | "X" | null;
 }
 
 class Board {
@@ -58,13 +57,13 @@ export class Playground {
         document.getElementById("ending-message")!;
     public player1: Player;
     public player2: Player;
-    private p1StartCount: number;
-    private p2StartCount: number;
-    private isTraining: boolean;
+    protected p1StartCount: number;
+    protected p2StartCount: number;
+    protected isTraining: boolean;
     private nonStopping: boolean;
-    private remainingEpoch: number;
-    private gamesPerEpoch: number;
-    private remainingGames: number;
+    protected remainingEpoch: number;
+    protected gamesPerEpoch: number;
+    protected remainingGames: number;
     public board?: Board;
     public currentPlayer: Player | null;
     public constructor(player1: Player, player2: Player = new RandomPlayer()) {
@@ -83,7 +82,7 @@ export class Playground {
         document.addEventListener("gameOver", this.onGameOver as EventListener);
         document.addEventListener("stop", this.onStop);
     }
-    private onClick = (e: Event) => {
+    private onClick = (e: Event): void => {
         const position: [number, number] = (
             e.currentTarget as HTMLDivElement
         ).id
@@ -91,7 +90,7 @@ export class Playground {
             .map((e) => parseInt(e)) as [number, number];
         (this.currentPlayer as HumanPlayer).select(position);
     };
-    private onPlayerMove = (e: CustomEvent<MovePositionEvent>): void => {
+    protected onPlayerMove = (e: CustomEvent<MoveEvent>): void => {
         const [r, c] = e.detail.position;
         this.board?.matrix[r][c].setMark(e.detail.markPlaying);
 
@@ -102,7 +101,7 @@ export class Playground {
         }
         this.judge();
     };
-    private onCallNextPlayer = (): void => {
+    protected onCallNextPlayer = (): void => {
         const oldPlayerMark: string = this.currentPlayer?.markPlaying!;
         this.currentPlayer =
             this.currentPlayer === this.player1 ? this.player2 : this.player1;
@@ -115,16 +114,16 @@ export class Playground {
             setTimeout(() => this.currentPlayer?.select());
         }
     };
-    private onGameOver = (e: CustomEvent<GameOverEvent>): void => {
+    protected onGameOver = (e: CustomEvent<GameOverEvent>): void => {
         if (e.detail.winner) e.detail.winner.winCount++;
 
         for (const player of [this.player1, this.player2]) {
             if (player instanceof GraphPlayer) {
                 player.backpropagate(
-                    e.detail.winnerMark === player.markPlaying
-                        ? "win"
-                        : e.detail.winnerMark === null
+                    e.detail.winner === null
                         ? "tie"
+                        : e.detail.winner.markPlaying === player.markPlaying
+                        ? "win"
                         : "lose"
                 );
                 player.clearPath();
@@ -132,7 +131,7 @@ export class Playground {
                 player.resetChoices();
             } else if (player instanceof HumanPlayer) {
                 Playground.endingMessageDiv.innerHTML = e.detail.winner
-                    ? `${e.detail.winnerMark} wins!`
+                    ? `${e.detail.winner.markPlaying} wins!`
                     : "Draw!";
                 Playground.endingScreenDiv.className = "show";
             }
@@ -144,12 +143,9 @@ export class Playground {
             else document.dispatchEvent(new CustomEvent("stop"));
         });
     };
-    private onStop = (): void => {
+    protected onStop = (): void => {
         if (this.isTraining) {
             this.printResultOfCurrentEpoch();
-            for (const player of [this.player1, this.player2]) {
-                if (player instanceof GraphPlayer) player.printDatabaseInfo();
-            }
             this.resetResultOfCurrentEpoch();
         }
         this.remainingEpoch--;
@@ -167,7 +163,7 @@ export class Playground {
             }
         });
     };
-    public judge() {
+    protected judge() {
         let winnerMark: "O" | "X" | null = null;
 
         // Check each row
@@ -233,13 +229,14 @@ export class Playground {
                     setTimeout(() =>
                         document.dispatchEvent(
                             new CustomEvent<GameOverEvent>("gameOver", {
-                                detail: { winner: player, winnerMark },
+                                detail: { winner: player },
                             })
                         )
                     );
-                    break;
+                    return;
                 }
             }
+            throw Error(`Cannot find winner with mark: ${winnerMark}`);
         } else if (
             !this.board?.matrix.some((row) =>
                 row.some((cell) => cell.mark === " ")
@@ -248,7 +245,7 @@ export class Playground {
             setTimeout(() =>
                 document.dispatchEvent(
                     new CustomEvent<GameOverEvent>("gameOver", {
-                        detail: { winner: null, winnerMark },
+                        detail: { winner: null },
                     })
                 )
             );
@@ -258,7 +255,7 @@ export class Playground {
             );
         }
     }
-    private initBoard(): Board {
+    protected initBoard(): Board {
         const matrix: Cell[][] = new Array(3)
             .fill(null)
             .map(() => new Array(3).fill(null));
@@ -275,6 +272,7 @@ export class Playground {
     ): void {
         this.nonStopping = nonStopping;
         this.isTraining = isTraining;
+
         if (!this.isTraining) {
             this.remainingEpoch = 1;
             this.gamesPerEpoch = 1;
@@ -307,7 +305,7 @@ export class Playground {
         this.remainingGames = batch;
         this.start(true);
     }
-    private printResultOfCurrentEpoch(): void {
+    protected printResultOfCurrentEpoch(): void {
         console.log(
             `Game start with P1: ${this.p1StartCount} / P2: ${this.p2StartCount}`
         );
@@ -327,11 +325,193 @@ export class Playground {
         console.log(
             `P1 win: ${p1WinningRate}% | P2 win: ${p2WinningRate}% | Tie: ${drawRate}%`
         );
+        for (const player of [this.player1, this.player2]) {
+            if (player instanceof GraphPlayer) player.printDatabaseInfo();
+        }
     }
-    private resetResultOfCurrentEpoch(): void {
+    protected resetResultOfCurrentEpoch(): void {
         this.p1StartCount = 0;
         this.p2StartCount = 0;
         this.player1.winCount = 0;
         this.player2.winCount = 0;
+    }
+}
+
+export class TrainingGround extends Playground {
+    private isGameRunning: boolean;
+    public constructor(player1: Player, player2: Player) {
+        super(player1, player2);
+        document.removeEventListener(
+            "move",
+            this.onPlayerMove as EventListener
+        );
+        document.removeEventListener("callNextPlayer", this.onCallNextPlayer);
+        document.removeEventListener(
+            "gameOver",
+            this.onGameOver as EventListener
+        );
+        document.removeEventListener("stop", this.onStop);
+        this.isGameRunning = false;
+    }
+    public trainMachine(trainTimes: number, batch: number): void {
+        this.isTraining = true;
+        this.gamesPerEpoch = batch;
+        this.remainingEpoch = Math.floor(trainTimes / batch);
+        const remainder: number = trainTimes % batch;
+        while (this.remainingEpoch > 0) {
+            this.remainingGames = batch;
+            this.startTrainEpoch();
+            this.printResultOfCurrentEpoch();
+            this.resetResultOfCurrentEpoch();
+            this.remainingEpoch--;
+        }
+        if (remainder > 0) {
+            this.remainingGames = remainder;
+            this.startTrainEpoch();
+            this.printResultOfCurrentEpoch();
+            this.resetResultOfCurrentEpoch();
+        }
+        document.dispatchEvent(
+            new CustomEvent<CompleteTrainingEvent>("completeTraining", {
+                detail: { game: null },
+            })
+        );
+    }
+    private startTrainEpoch(): void {
+        this.prepare();
+        while (this.remainingGames > 0) {
+            this.playerMove();
+            const winner = this.judge();
+            if (!this.isGameRunning) {
+                if (winner) winner.winCount++;
+                for (const player of [this.player1, this.player2]) {
+                    if (player instanceof GraphPlayer) {
+                        player.backpropagate(
+                            winner === null
+                                ? "tie"
+                                : winner.markPlaying === player.markPlaying
+                                ? "win"
+                                : "lose"
+                        );
+                        player.clearPath();
+                    } else if (player instanceof RandomPlayer) {
+                        player.resetChoices();
+                    }
+                }
+                this.remainingGames--;
+                if (this.remainingGames > 0) this.prepare();
+                else break;
+            } else {
+                const oldPlayerMark: string = this.currentPlayer?.markPlaying!;
+                this.currentPlayer =
+                    this.currentPlayer === this.player1
+                        ? this.player2
+                        : this.player1;
+                this.board?.div.classList.replace(
+                    oldPlayerMark,
+                    this.currentPlayer.markPlaying!
+                );
+            }
+        }
+    }
+    private prepare(): void {
+        this.board = this.initBoard();
+        this.isGameRunning = true;
+        if (Math.random() >= 0.5) {
+            this.currentPlayer = this.player1;
+            this.player1.markPlaying = "O";
+            this.player2.markPlaying = "X";
+            this.p1StartCount++;
+        } else {
+            this.currentPlayer = this.player2;
+            this.player1.markPlaying = "X";
+            this.player2.markPlaying = "O";
+            this.p2StartCount++;
+        }
+    }
+    private playerMove(): void {
+        const [r, c] = this.currentPlayer?.select(false)!;
+        this.board?.matrix[r][c].setMark(this.currentPlayer?.markPlaying!);
+
+        const opponent =
+            this.currentPlayer === this.player1 ? this.player2 : this.player1;
+        if (isAutoPlayer(opponent)) {
+            opponent.moveWithOpponent([r, c], this.board!.matrix);
+        }
+    }
+    protected judge(): Player | null {
+        let winnerMark: "O" | "X" | null = null;
+
+        // Check each row
+        for (let i = 0; i < this.board!.matrix.length; i++) {
+            if (
+                this.board?.matrix[i].every((cell) => {
+                    return (
+                        cell.mark === this.board?.matrix[i][0].mark &&
+                        this.board.matrix[i][0].mark !== " "
+                    );
+                })
+            ) {
+                winnerMark = this.board.matrix[i][0].mark as "O" | "X";
+                break;
+            }
+        }
+        if (winnerMark === null) {
+            // Check each column
+            for (let i = 0; i < this.board!.matrix[0].length; i++) {
+                if (
+                    this.board?.matrix.every((row) => {
+                        return (
+                            row[i].mark === this.board?.matrix[0][i].mark &&
+                            this.board.matrix[0][i].mark !== " "
+                        );
+                    })
+                ) {
+                    winnerMark = this.board.matrix[0][i].mark as "O" | "X";
+                    break;
+                }
+            }
+        }
+        if (winnerMark === null) {
+            // Check each diagnal
+            const diagnal1: ("O" | "X" | " ")[] = [
+                this.board!.matrix[0][0].mark,
+                this.board!.matrix[1][1].mark,
+                this.board!.matrix[2][2].mark,
+            ];
+            const diagnal2: ("O" | "X" | " ")[] = [
+                this.board!.matrix[0][2].mark,
+                this.board!.matrix[1][1].mark,
+                this.board!.matrix[2][0].mark,
+            ];
+            if (
+                diagnal1.every(
+                    (mark) => mark === diagnal1[0] && diagnal1[0] !== " "
+                )
+            ) {
+                winnerMark = diagnal1[0] as "O" | "X";
+            } else if (
+                diagnal2.every(
+                    (mark) => mark === diagnal2[0] && diagnal2[0] !== " "
+                )
+            ) {
+                winnerMark = diagnal2[0] as "O" | "X";
+            }
+        }
+
+        if (winnerMark) {
+            this.isGameRunning = false;
+            for (const player of [this.player1, this.player2]) {
+                if (player.markPlaying === winnerMark) return player;
+            }
+            throw Error(`Cannot find winner with mark: ${winnerMark}`);
+        } else if (
+            !this.board?.matrix.some((row) =>
+                row.some((cell) => cell.mark === " ")
+            )
+        ) {
+            this.isGameRunning = false;
+        }
+        return null;
     }
 }

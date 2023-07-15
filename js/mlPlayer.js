@@ -100,7 +100,7 @@ export class GraphPlayer {
     clearPath() {
         this.path = [{ rotatedKey: "BBBBBBBBB", rotateCount: 0 }];
     }
-    select() {
+    select(shouldDispatchEvent = true) {
         const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
         const currentNode = this.database[rotatedKey];
         this.expand(currentNode);
@@ -127,11 +127,13 @@ export class GraphPlayer {
         const rotatedBestChildNodeKey = this.getClockwiseRotatedKey(bestChildNodeWithRotateCount.node.key, -bestChildNodeWithRotateCount.rotateCount);
         let position = this.keyDiffToMovePosition(currentNode.key, rotatedBestChildNodeKey);
         position = this.getClockwiseRotatedPosition(position, -rotateCount);
-        setTimeout(() => {
-            document.dispatchEvent(new CustomEvent("move", {
-                detail: { position, markPlaying: this.markPlaying },
-            }));
-        });
+        if (shouldDispatchEvent) {
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent("move", {
+                    detail: { position, markPlaying: this.markPlaying },
+                }));
+            });
+        }
         return position;
     }
     expand(targetNode) {
