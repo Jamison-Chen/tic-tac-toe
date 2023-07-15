@@ -1,4 +1,4 @@
-import { Cell } from "./ticTacToe";
+import { Cell } from "./playground";
 
 export interface Player {
     markPlaying: "O" | "X" | null;

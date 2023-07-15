@@ -17,7 +17,7 @@ class Node {
         this.children = [];
     }
 }
-export default class MLPlayer {
+export class GraphPlayer {
     constructor() {
         this.database = { BBBBBBBBB: new Node("BBBBBBBBB") };
         this.path = [];

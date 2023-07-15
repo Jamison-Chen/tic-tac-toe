@@ -1,5 +1,5 @@
-import TicTacToe from "./ticTacToe.js";
-import MLPlayer from "./mlPlayer.js";
+import Playground from "./playground.js";
+import { GraphPlayer } from "./mlPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 
 const controlBar: HTMLElement = document.getElementById("control-bar")!;
@@ -20,7 +20,7 @@ const reloadBtnInEndingScreen: HTMLButtonElement = document.getElementById(
     "reload-btn-in-ending-screen"
 ) as HTMLButtonElement;
 
-const mlPlayer = new MLPlayer();
+const mlPlayer = new GraphPlayer();
 
 multiplayerBtn.addEventListener("click", () => startMultiPlayerGame());
 naiveMachineBtn.addEventListener("click", () => startSinglePlayerGame(false));
@@ -30,14 +30,14 @@ reloadBtnInEndingScreen.addEventListener("click", () => location.reload());
 
 function startMultiPlayerGame(): void {
     disableControlBar();
-    const game = new TicTacToe(new HumanPlayer(), new HumanPlayer());
+    const game = new Playground(new HumanPlayer(), new HumanPlayer());
     game.start(false);
 }
 
 function startSinglePlayerGame(shouldTrain: boolean): void {
     disableControlBar();
     if (shouldTrain) {
-        const game: TicTacToe = new TicTacToe(mlPlayer, new MLPlayer());
+        const game = new Playground(mlPlayer, new GraphPlayer());
         game.trainMachine(2500, 250);
         document.addEventListener("completeTraining", () => {
             setTimeout(() => {
@@ -46,7 +46,7 @@ function startSinglePlayerGame(shouldTrain: boolean): void {
             });
         });
     } else {
-        const game: TicTacToe = new TicTacToe(mlPlayer, new HumanPlayer());
+        const game = new Playground(mlPlayer, new HumanPlayer());
         game.start(false);
     }
 }

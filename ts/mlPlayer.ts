@@ -1,5 +1,5 @@
 import { AutoPlayer, Player } from "./player.js";
-import { Cell, MovePositionEvent } from "./ticTacToe.js";
+import { Cell, MovePositionEvent } from "./playground.js";
 import Utils from "./utils.js";
 
 class Node {
@@ -35,7 +35,7 @@ type NodeWithRotateCount = {
     rotateCount: number;
 };
 
-export default class MLPlayer implements Player, AutoPlayer {
+export class GraphPlayer implements Player, AutoPlayer {
     private path: PathInfo[];
     private database: { [key: string]: Node };
     public markPlaying: "O" | "X" | null;

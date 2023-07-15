@@ -1,5 +1,5 @@
 import { Player, isAutoPlayer } from "./player.js";
-import MLPlayer from "./mlPlayer.js";
+import { GraphPlayer } from "./mlPlayer.js";
 import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
 
@@ -47,7 +47,7 @@ export class Cell {
     }
 }
 
-export default class TicTacToe {
+export default class Playground {
     public endingScreenDiv: HTMLElement =
         document.getElementById("ending-screen")!;
     public endingMessageDiv: HTMLElement =
@@ -115,7 +115,7 @@ export default class TicTacToe {
         if (e.detail.winner) e.detail.winner.winCount++;
 
         for (const player of [this.player1, this.player2]) {
-            if (player instanceof MLPlayer) {
+            if (player instanceof GraphPlayer) {
                 player.backPropagate(
                     e.detail.winnerMark === player.markPlaying
                         ? "win"
@@ -143,7 +143,7 @@ export default class TicTacToe {
     private onStop = (): void => {
         this.printTrainResult();
         for (const player of [this.player1, this.player2]) {
-            if (player instanceof MLPlayer) player.printDatabaseInfo();
+            if (player instanceof GraphPlayer) player.printDatabaseInfo();
         }
         this.resetTrainResultOfCurrentEpoch();
         this.remainingEpoch--;

@@ -1,5 +1,5 @@
 import { Player } from "./player";
-import { MovePositionEvent } from "./ticTacToe";
+import { MovePositionEvent } from "./playground";
 
 export default class HumanPlayer implements Player {
     public markPlaying: "O" | "X" | null;

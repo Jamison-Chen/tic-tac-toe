@@ -1,5 +1,5 @@
 import { AutoPlayer, Player } from "./player";
-import { Cell, MovePositionEvent } from "./ticTacToe";
+import { Cell, MovePositionEvent } from "./playground";
 
 export default class RandomPlayer implements Player, AutoPlayer {
     private allChoices: [number, number][];
