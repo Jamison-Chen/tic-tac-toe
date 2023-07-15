@@ -1,3 +1,4 @@
+import Utils from "./utils.js";
 class Node {
     constructor(key) {
         this._key = key;
@@ -196,6 +197,13 @@ export default class MLPlayer {
         }
     }
     printDatabaseInfo() {
-        console.log(`Database size: ${Object.keys(this.database).length}`);
+        const scale = ["bytes", "KB", "MB", "GB", "TB"];
+        let size = Utils.getSizeOfObject(this.database);
+        let i = 0;
+        while (size / 1024 > 1) {
+            size /= 1024;
+            i++;
+        }
+        console.log(`Database size: ${Object.keys(this.database).length} (${Math.round(size * 100) / 100} ${scale[i]})`);
     }
 }
