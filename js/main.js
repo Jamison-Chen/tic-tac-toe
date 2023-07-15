@@ -14,12 +14,12 @@ trainedMachineBtn.addEventListener("click", () => startSinglePlayerGame(true));
 reloadBtnInControlBar.addEventListener("click", () => location.reload());
 reloadBtnInEndingScreen.addEventListener("click", () => location.reload());
 function startMultiPlayerGame() {
-    disableControlBar();
+    moveControlBar();
     const game = new Playground(new HumanPlayer(), new HumanPlayer());
     game.start(false);
 }
 function startSinglePlayerGame(shouldTrain) {
-    disableControlBar();
+    moveControlBar();
     if (shouldTrain) {
         const game = new Playground(mlPlayer, new GraphPlayer());
         game.trainMachine(2500, 250);
@@ -35,9 +35,6 @@ function startSinglePlayerGame(shouldTrain) {
         game.start(false);
     }
 }
-function disableControlBar() {
-    multiplayerBtn.disabled = true;
-    naiveMachineBtn.disabled = true;
-    trainedMachineBtn.disabled = true;
+function moveControlBar() {
     controlBar.classList.add("bottom");
 }

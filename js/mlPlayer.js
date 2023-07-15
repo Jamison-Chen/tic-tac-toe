@@ -25,7 +25,7 @@ export class GraphPlayer {
         this.winCount = 0;
         this.clearPath();
     }
-    translateBoardToKey(board) {
+    boardToKey(board) {
         let key = "";
         for (let r = 0; r < board.length; r++) {
             for (let c = 0; c < board[r].length; c++) {
@@ -37,7 +37,7 @@ export class GraphPlayer {
         }
         return key;
     }
-    translateKeyDiffToMovePos(prevKey, currentKey) {
+    keyDiffToMovePosition(prevKey, currentKey) {
         for (let i = 0; i < prevKey.length; i++) {
             if (prevKey[i] !== currentKey[i])
                 return [Math.floor(i / 3), i % 3];
@@ -58,7 +58,7 @@ export class GraphPlayer {
         else
             return [2 - c, r];
     }
-    genAllPossibleNextStateKeys(currentKey) {
+    genAllNextStateKeys(currentKey) {
         const markCount = { O: 0, X: 0, B: 0 };
         for (const mark of currentKey)
             markCount[mark]++;
@@ -95,15 +95,10 @@ export class GraphPlayer {
     moveWithOpponent(position, board) {
         const currentNode = this.database[this.path[this.path.length - 1].rotatedKey];
         this.expand(currentNode);
-        this.path.push(this.getEqivalentPathInfo(this.translateBoardToKey(board)));
+        this.path.push(this.getEqivalentPathInfo(this.boardToKey(board)));
     }
     clearPath() {
-        this.path = [
-            {
-                rotatedKey: "BBBBBBBBB",
-                rotateCount: 0,
-            },
-        ];
+        this.path = [{ rotatedKey: "BBBBBBBBB", rotateCount: 0 }];
     }
     select() {
         const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
@@ -130,7 +125,7 @@ export class GraphPlayer {
             rotateCount: bestChildNodeWithRotateCount.rotateCount + rotateCount,
         });
         const rotatedBestChildNodeKey = this.getClockwiseRotatedKey(bestChildNodeWithRotateCount.node.key, -bestChildNodeWithRotateCount.rotateCount);
-        let position = this.translateKeyDiffToMovePos(currentNode.key, rotatedBestChildNodeKey);
+        let position = this.keyDiffToMovePosition(currentNode.key, rotatedBestChildNodeKey);
         position = this.getClockwiseRotatedPosition(position, -rotateCount);
         setTimeout(() => {
             document.dispatchEvent(new CustomEvent("move", {
@@ -141,7 +136,7 @@ export class GraphPlayer {
     }
     expand(targetNode) {
         if (!targetNode.isEndGame && targetNode.isExternal) {
-            for (const key of this.genAllPossibleNextStateKeys(targetNode.key)) {
+            for (const key of this.genAllNextStateKeys(targetNode.key)) {
                 let keyToAdd = { rotatedKey: key, rotateCount: 0 };
                 try {
                     keyToAdd = this.getEqivalentPathInfo(key);

@@ -47,7 +47,7 @@ export class GraphPlayer implements Player, AutoPlayer {
         this.winCount = 0;
         this.clearPath();
     }
-    private translateBoardToKey(board: Cell[][]): string {
+    private boardToKey(board: Cell[][]): string {
         let key = "";
         for (let r = 0; r < board.length; r++) {
             for (let c = 0; c < board[r].length; c++) {
@@ -57,7 +57,7 @@ export class GraphPlayer implements Player, AutoPlayer {
         }
         return key;
     }
-    private translateKeyDiffToMovePos(
+    private keyDiffToMovePosition(
         prevKey: string,
         currentKey: string
     ): [number, number] {
@@ -78,7 +78,7 @@ export class GraphPlayer implements Player, AutoPlayer {
         else if (rotateCount === 2) return [2 - r, 2 - c];
         else return [2 - c, r];
     }
-    private genAllPossibleNextStateKeys(currentKey: string): string[] {
+    private genAllNextStateKeys(currentKey: string): string[] {
         const markCount: { [mark: string]: number } = { O: 0, X: 0, B: 0 };
         for (const mark of currentKey) markCount[mark]++;
         const nextStateMark = markCount.O > markCount.X ? "X" : "O";
@@ -119,17 +119,10 @@ export class GraphPlayer implements Player, AutoPlayer {
         const currentNode =
             this.database[this.path[this.path.length - 1].rotatedKey];
         this.expand(currentNode);
-        this.path.push(
-            this.getEqivalentPathInfo(this.translateBoardToKey(board))
-        );
+        this.path.push(this.getEqivalentPathInfo(this.boardToKey(board)));
     }
     public clearPath(): void {
-        this.path = [
-            {
-                rotatedKey: "BBBBBBBBB",
-                rotateCount: 0,
-            },
-        ];
+        this.path = [{ rotatedKey: "BBBBBBBBB", rotateCount: 0 }];
     }
     public select(): [number, number] {
         const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
@@ -168,7 +161,7 @@ export class GraphPlayer implements Player, AutoPlayer {
             bestChildNodeWithRotateCount.node.key,
             -bestChildNodeWithRotateCount.rotateCount
         );
-        let position = this.translateKeyDiffToMovePos(
+        let position = this.keyDiffToMovePosition(
             currentNode.key,
             rotatedBestChildNodeKey
         );
@@ -185,9 +178,7 @@ export class GraphPlayer implements Player, AutoPlayer {
     }
     private expand(targetNode: Node): void {
         if (!targetNode.isEndGame && targetNode.isExternal) {
-            for (const key of this.genAllPossibleNextStateKeys(
-                targetNode.key
-            )) {
+            for (const key of this.genAllNextStateKeys(targetNode.key)) {
                 let keyToAdd: PathInfo = { rotatedKey: key, rotateCount: 0 };
                 try {
                     keyToAdd = this.getEqivalentPathInfo(key);
