@@ -1,4 +1,4 @@
-export function isAutoPlayer(player) {
-    return ("moveWithOpponent" in player &&
-        typeof player.moveWithOpponent === "function");
+export class Player {
+}
+export class AutoPlayer extends Player {
 }

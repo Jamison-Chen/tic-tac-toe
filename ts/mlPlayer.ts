@@ -1,4 +1,4 @@
-import { AutoPlayer, Player } from "./player.js";
+import { AutoPlayer } from "./player.js";
 import { Cell, MoveEvent } from "./playground.js";
 import Utils from "./utils.js";
 
@@ -35,12 +35,13 @@ type NodeWithRotateCount = {
     rotateCount: number;
 };
 
-export class GraphPlayer implements Player, AutoPlayer {
+export class GraphPlayer extends AutoPlayer {
     private path: PathInfo[];
     private database: { [key: string]: Node };
     public markPlaying: "O" | "X" | null;
     public winCount: number;
     public constructor() {
+        super();
         this.database = { BBBBBBBBB: new Node("BBBBBBBBB") };
         this.path = [];
         this.markPlaying = null;

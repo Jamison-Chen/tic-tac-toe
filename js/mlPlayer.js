@@ -1,3 +1,4 @@
+import { AutoPlayer } from "./player.js";
 import Utils from "./utils.js";
 class Node {
     constructor(key) {
@@ -17,8 +18,9 @@ class Node {
         this.children = [];
     }
 }
-export class GraphPlayer {
+export class GraphPlayer extends AutoPlayer {
     constructor() {
+        super();
         this.database = { BBBBBBBBB: new Node("BBBBBBBBB") };
         this.path = [];
         this.markPlaying = null;

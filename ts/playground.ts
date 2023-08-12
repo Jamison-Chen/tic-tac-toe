@@ -1,4 +1,4 @@
-import { Player, isAutoPlayer } from "./player.js";
+import { AutoPlayer, Player } from "./player.js";
 import { GraphPlayer } from "./mlPlayer.js";
 import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
@@ -96,7 +96,7 @@ export class Playground {
 
         const opponent =
             this.currentPlayer === this.player1 ? this.player2 : this.player1;
-        if (isAutoPlayer(opponent)) {
+        if (opponent instanceof AutoPlayer) {
             opponent.moveWithOpponent([r, c], this.board!.matrix);
         }
         this.judge();
@@ -435,7 +435,7 @@ export class TrainingGround extends Playground {
 
         const opponent =
             this.currentPlayer === this.player1 ? this.player2 : this.player1;
-        if (isAutoPlayer(opponent)) {
+        if (opponent instanceof AutoPlayer) {
             opponent.moveWithOpponent([r, c], this.board!.matrix);
         }
     }
@@ -498,7 +498,6 @@ export class TrainingGround extends Playground {
                 winnerMark = diagnal2[0] as "O" | "X";
             }
         }
-
         if (winnerMark) {
             this.isGameRunning = false;
             for (const player of [this.player1, this.player2]) {

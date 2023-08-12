@@ -22,10 +22,6 @@ function startP2CGame(shouldTrain) {
     moveControlBar();
     if (shouldTrain) {
         document.addEventListener("completeTraining", onCompleteTraining);
-        // Visualize training process (event-driven, very slow)
-        // const game = new Playground(mlPlayer, new GraphPlayer());
-        // game.trainMachine(24, 12);
-        // Hide training process (iteration, very fast)
         const game = new TrainingGround(mlPlayer, new GraphPlayer());
         game.trainMachine(2400, 400);
     }

@@ -1,5 +1,7 @@
-export default class RandomPlayer {
+import { AutoPlayer } from "./player.js";
+export default class RandomPlayer extends AutoPlayer {
     constructor() {
+        super();
         this.allChoices = [
             [0, 0],
             [0, 1],

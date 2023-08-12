@@ -1,3 +1,4 @@
+// Notice the .js in path below
 import {
     Playground,
     CompleteTrainingEvent,
@@ -44,11 +45,11 @@ function startP2CGame(shouldTrain: boolean): void {
             "completeTraining",
             onCompleteTraining as EventListener
         );
-        // Visualize training process (event-driven, very slow)
+        //// Visualize training process (event-driven, very slow)
         // const game = new Playground(mlPlayer, new GraphPlayer());
         // game.trainMachine(24, 12);
 
-        // Hide training process (iteration, very fast)
+        //// Hide training process (iteration, very fast)
         const game = new TrainingGround(mlPlayer, new GraphPlayer());
         game.trainMachine(2400, 400);
     } else {

@@ -1,5 +1,7 @@
-export default class HumanPlayer {
+import { Player } from "./player";
+export default class HumanPlayer extends Player {
     constructor() {
+        super();
         this.markPlaying = null;
         this.winCount = 0;
     }

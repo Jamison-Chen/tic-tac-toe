@@ -1,4 +1,4 @@
-import { isAutoPlayer } from "./player.js";
+import { AutoPlayer } from "./player.js";
 import { GraphPlayer } from "./mlPlayer.js";
 import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
@@ -38,23 +38,21 @@ export class Playground {
             this.currentPlayer.select(position);
         };
         this.onPlayerMove = (e) => {
-            var _a;
             const [r, c] = e.detail.position;
-            (_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[r][c].setMark(e.detail.markPlaying);
+            this.board?.matrix[r][c].setMark(e.detail.markPlaying);
             const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
-            if (isAutoPlayer(opponent)) {
+            if (opponent instanceof AutoPlayer) {
                 opponent.moveWithOpponent([r, c], this.board.matrix);
             }
             this.judge();
         };
         this.onCallNextPlayer = () => {
-            var _a, _b;
-            const oldPlayerMark = (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.markPlaying;
+            const oldPlayerMark = this.currentPlayer?.markPlaying;
             this.currentPlayer =
                 this.currentPlayer === this.player1 ? this.player2 : this.player1;
-            (_b = this.board) === null || _b === void 0 ? void 0 : _b.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
+            this.board?.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
             if (!(this.currentPlayer instanceof HumanPlayer)) {
-                setTimeout(() => { var _a; return (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.select(); });
+                setTimeout(() => this.currentPlayer?.select());
             }
         };
         this.onGameOver = (e) => {
@@ -122,13 +120,10 @@ export class Playground {
         document.addEventListener("stop", this.onStop);
     }
     judge() {
-        var _a, _b, _c;
         let winnerMark = null;
-        // Check each row
         for (let i = 0; i < this.board.matrix.length; i++) {
-            if ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i].every((cell) => {
-                var _a;
-                return (cell.mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i][0].mark) &&
+            if (this.board?.matrix[i].every((cell) => {
+                return (cell.mark === this.board?.matrix[i][0].mark &&
                     this.board.matrix[i][0].mark !== " ");
             })) {
                 winnerMark = this.board.matrix[i][0].mark;
@@ -136,11 +131,9 @@ export class Playground {
             }
         }
         if (winnerMark === null) {
-            // Check each column
             for (let i = 0; i < this.board.matrix[0].length; i++) {
-                if ((_b = this.board) === null || _b === void 0 ? void 0 : _b.matrix.every((row) => {
-                    var _a;
-                    return (row[i].mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[0][i].mark) &&
+                if (this.board?.matrix.every((row) => {
+                    return (row[i].mark === this.board?.matrix[0][i].mark &&
                         this.board.matrix[0][i].mark !== " ");
                 })) {
                     winnerMark = this.board.matrix[0][i].mark;
@@ -149,7 +142,6 @@ export class Playground {
             }
         }
         if (winnerMark === null) {
-            // Check each diagnal
             const diagnal1 = [
                 this.board.matrix[0][0].mark,
                 this.board.matrix[1][1].mark,
@@ -178,7 +170,7 @@ export class Playground {
             }
             throw Error(`Cannot find winner with mark: ${winnerMark}`);
         }
-        else if (!((_c = this.board) === null || _c === void 0 ? void 0 : _c.matrix.some((row) => row.some((cell) => cell.mark === " ")))) {
+        else if (!this.board?.matrix.some((row) => row.some((cell) => cell.mark === " "))) {
             setTimeout(() => document.dispatchEvent(new CustomEvent("gameOver", {
                 detail: { winner: null },
             })));
@@ -210,7 +202,6 @@ export class Playground {
         }
         Playground.endingScreenDiv.classList.remove("show");
         this.board = this.initBoard();
-        // Choose and record first player
         if (Math.random() >= 0.5) {
             this.currentPlayer = this.player1;
             this.player1.markPlaying = "O";
@@ -224,7 +215,7 @@ export class Playground {
             this.p2StartCount++;
         }
         if (!(this.currentPlayer instanceof HumanPlayer)) {
-            setTimeout(() => { var _a; return (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.select(); });
+            setTimeout(() => this.currentPlayer?.select());
         }
     }
     trainMachine(trainTimes, batch) {
@@ -290,7 +281,6 @@ export class TrainingGround extends Playground {
         }));
     }
     startTrainEpoch() {
-        var _a, _b;
         this.prepare();
         while (this.remainingGames > 0) {
             this.playerMove();
@@ -318,12 +308,12 @@ export class TrainingGround extends Playground {
                     break;
             }
             else {
-                const oldPlayerMark = (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.markPlaying;
+                const oldPlayerMark = this.currentPlayer?.markPlaying;
                 this.currentPlayer =
                     this.currentPlayer === this.player1
                         ? this.player2
                         : this.player1;
-                (_b = this.board) === null || _b === void 0 ? void 0 : _b.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
+                this.board?.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
             }
         }
     }
@@ -344,22 +334,18 @@ export class TrainingGround extends Playground {
         }
     }
     playerMove() {
-        var _a, _b, _c;
-        const [r, c] = (_a = this.currentPlayer) === null || _a === void 0 ? void 0 : _a.select(false);
-        (_b = this.board) === null || _b === void 0 ? void 0 : _b.matrix[r][c].setMark((_c = this.currentPlayer) === null || _c === void 0 ? void 0 : _c.markPlaying);
+        const [r, c] = this.currentPlayer?.select(false);
+        this.board?.matrix[r][c].setMark(this.currentPlayer?.markPlaying);
         const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
-        if (isAutoPlayer(opponent)) {
+        if (opponent instanceof AutoPlayer) {
             opponent.moveWithOpponent([r, c], this.board.matrix);
         }
     }
     judge() {
-        var _a, _b, _c;
         let winnerMark = null;
-        // Check each row
         for (let i = 0; i < this.board.matrix.length; i++) {
-            if ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i].every((cell) => {
-                var _a;
-                return (cell.mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[i][0].mark) &&
+            if (this.board?.matrix[i].every((cell) => {
+                return (cell.mark === this.board?.matrix[i][0].mark &&
                     this.board.matrix[i][0].mark !== " ");
             })) {
                 winnerMark = this.board.matrix[i][0].mark;
@@ -367,11 +353,9 @@ export class TrainingGround extends Playground {
             }
         }
         if (winnerMark === null) {
-            // Check each column
             for (let i = 0; i < this.board.matrix[0].length; i++) {
-                if ((_b = this.board) === null || _b === void 0 ? void 0 : _b.matrix.every((row) => {
-                    var _a;
-                    return (row[i].mark === ((_a = this.board) === null || _a === void 0 ? void 0 : _a.matrix[0][i].mark) &&
+                if (this.board?.matrix.every((row) => {
+                    return (row[i].mark === this.board?.matrix[0][i].mark &&
                         this.board.matrix[0][i].mark !== " ");
                 })) {
                     winnerMark = this.board.matrix[0][i].mark;
@@ -380,7 +364,6 @@ export class TrainingGround extends Playground {
             }
         }
         if (winnerMark === null) {
-            // Check each diagnal
             const diagnal1 = [
                 this.board.matrix[0][0].mark,
                 this.board.matrix[1][1].mark,
@@ -406,7 +389,7 @@ export class TrainingGround extends Playground {
             }
             throw Error(`Cannot find winner with mark: ${winnerMark}`);
         }
-        else if (!((_c = this.board) === null || _c === void 0 ? void 0 : _c.matrix.some((row) => row.some((cell) => cell.mark === " ")))) {
+        else if (!this.board?.matrix.some((row) => row.some((cell) => cell.mark === " "))) {
             this.isGameRunning = false;
         }
         return null;

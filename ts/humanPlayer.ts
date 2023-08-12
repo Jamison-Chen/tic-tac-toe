@@ -1,10 +1,11 @@
 import { Player } from "./player";
-import { MoveEvent } from "./playground";
+import { MoveEvent } from "./playground.js";
 
-export default class HumanPlayer implements Player {
+export default class HumanPlayer extends Player {
     public markPlaying: "O" | "X" | null;
     public winCount: number;
     public constructor() {
+        super();
         this.markPlaying = null;
         this.winCount = 0;
     }

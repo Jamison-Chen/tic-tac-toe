@@ -1,12 +1,13 @@
-import { AutoPlayer, Player } from "./player";
-import { Cell, MoveEvent } from "./playground";
+import { AutoPlayer } from "./player.js";
+import { Cell, MoveEvent } from "./playground.js";
 
-export default class RandomPlayer implements Player, AutoPlayer {
+export default class RandomPlayer extends AutoPlayer {
     private allChoices: [number, number][];
     private availableChoices: [number, number][];
     public markPlaying: "O" | "X" | null;
     public winCount: number;
     public constructor() {
+        super();
         this.allChoices = [
             [0, 0],
             [0, 1],

@@ -1,18 +1,14 @@
-import { Cell } from "./playground";
+import { Cell } from "./playground.js";
 
-export interface Player {
-    markPlaying: "O" | "X" | null;
-    winCount: number;
-    select(...arg: any): [number, number];
+export abstract class Player {
+    public abstract markPlaying: "O" | "X" | null;
+    public abstract winCount: number;
+    public abstract select(...arg: any): [number, number];
 }
 
-export interface AutoPlayer extends Player {
-    moveWithOpponent(position: [number, number], latestBoard: Cell[][]): void;
-}
-
-export function isAutoPlayer(player: Player): player is AutoPlayer {
-    return (
-        "moveWithOpponent" in player &&
-        typeof player.moveWithOpponent === "function"
-    );
+export abstract class AutoPlayer extends Player {
+    public abstract moveWithOpponent(
+        position: [number, number],
+        latestBoard: Cell[][]
+    ): void;
 }
