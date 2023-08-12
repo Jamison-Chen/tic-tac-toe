@@ -20,14 +20,14 @@ export default class RandomPlayer extends AutoPlayer {
     resetChoices() {
         this.availableChoices = this.allChoices;
     }
-    moveWithOpponent(position, latestBoard = []) {
+    moveWithOpponent(info) {
         this.availableChoices = this.availableChoices.filter((each) => {
-            return each[0] !== position[0] || each[1] !== position[1];
+            return each[0] !== info.position[0] || each[1] !== info.position[1];
         });
     }
     select() {
         const position = this.availableChoices[Math.floor(Math.random() * this.availableChoices.length)];
-        this.moveWithOpponent(position);
+        this.moveWithOpponent({ position });
         setTimeout(() => {
             document.dispatchEvent(new CustomEvent("move", {
                 detail: { position, markPlaying: this.markPlaying },

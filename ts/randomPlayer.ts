@@ -1,5 +1,5 @@
 import { AutoPlayer } from "./player.js";
-import { Cell, MoveEvent } from "./playground.js";
+import { MoveEvent } from "./playground.js";
 
 export default class RandomPlayer extends AutoPlayer {
     private allChoices: [number, number][];
@@ -26,12 +26,9 @@ export default class RandomPlayer extends AutoPlayer {
     public resetChoices(): void {
         this.availableChoices = this.allChoices;
     }
-    public moveWithOpponent(
-        position: [number, number],
-        latestBoard: Cell[][] = []
-    ): void {
+    public moveWithOpponent(info: { position: [number, number] }): void {
         this.availableChoices = this.availableChoices.filter((each) => {
-            return each[0] !== position[0] || each[1] !== position[1];
+            return each[0] !== info.position[0] || each[1] !== info.position[1];
         });
     }
     public select(): [number, number] {
@@ -39,7 +36,7 @@ export default class RandomPlayer extends AutoPlayer {
             this.availableChoices[
                 Math.floor(Math.random() * this.availableChoices.length)
             ];
-        this.moveWithOpponent(position);
+        this.moveWithOpponent({ position });
         setTimeout(() => {
             document.dispatchEvent(
                 new CustomEvent<MoveEvent>("move", {

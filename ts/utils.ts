@@ -3,7 +3,6 @@ export default class Utils {
         const objectList = [];
         const stack = [object];
         let bytes = 0;
-
         while (stack.length) {
             const item = stack.pop();
             if (
@@ -16,7 +15,6 @@ export default class Utils {
             }
             bytes += Utils.sizeOf(item);
         }
-
         return bytes;
     }
     private static sizeOf(item: any): number {

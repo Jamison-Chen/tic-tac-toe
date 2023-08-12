@@ -1,4 +1,4 @@
-import { Player } from "./player";
+import { Player } from "./player.js";
 import { MoveEvent } from "./playground.js";
 
 export default class HumanPlayer extends Player {

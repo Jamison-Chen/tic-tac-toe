@@ -7,8 +7,8 @@ export abstract class Player {
 }
 
 export abstract class AutoPlayer extends Player {
-    public abstract moveWithOpponent(
-        position: [number, number],
-        latestBoard: Cell[][]
-    ): void;
+    public abstract moveWithOpponent(info: {
+        position?: [number, number];
+        board?: Cell[][];
+    }): void;
 }

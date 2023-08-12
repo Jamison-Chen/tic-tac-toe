@@ -97,7 +97,10 @@ export class Playground {
         const opponent =
             this.currentPlayer === this.player1 ? this.player2 : this.player1;
         if (opponent instanceof AutoPlayer) {
-            opponent.moveWithOpponent([r, c], this.board!.matrix);
+            opponent.moveWithOpponent({
+                position: [r, c],
+                board: this.board!.matrix,
+            });
         }
         this.judge();
     };
@@ -436,7 +439,10 @@ export class TrainingGround extends Playground {
         const opponent =
             this.currentPlayer === this.player1 ? this.player2 : this.player1;
         if (opponent instanceof AutoPlayer) {
-            opponent.moveWithOpponent([r, c], this.board!.matrix);
+            opponent.moveWithOpponent({
+                position: [r, c],
+                board: this.board!.matrix,
+            });
         }
     }
     protected judge(): Player | null {

@@ -94,10 +94,10 @@ export class GraphPlayer extends AutoPlayer {
         }
         return newKey;
     }
-    moveWithOpponent(position, board) {
+    moveWithOpponent(info) {
         const currentNode = this.database[this.path[this.path.length - 1].rotatedKey];
         this.expand(currentNode);
-        this.path.push(this.getEqivalentPathInfo(this.boardToKey(board)));
+        this.path.push(this.getEqivalentPathInfo(this.boardToKey(info.board)));
     }
     clearPath() {
         this.path = [{ rotatedKey: "BBBBBBBBB", rotateCount: 0 }];

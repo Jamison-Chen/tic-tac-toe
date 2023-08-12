@@ -42,7 +42,10 @@ export class Playground {
             this.board?.matrix[r][c].setMark(e.detail.markPlaying);
             const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
             if (opponent instanceof AutoPlayer) {
-                opponent.moveWithOpponent([r, c], this.board.matrix);
+                opponent.moveWithOpponent({
+                    position: [r, c],
+                    board: this.board.matrix,
+                });
             }
             this.judge();
         };
@@ -338,7 +341,10 @@ export class TrainingGround extends Playground {
         this.board?.matrix[r][c].setMark(this.currentPlayer?.markPlaying);
         const opponent = this.currentPlayer === this.player1 ? this.player2 : this.player1;
         if (opponent instanceof AutoPlayer) {
-            opponent.moveWithOpponent([r, c], this.board.matrix);
+            opponent.moveWithOpponent({
+                position: [r, c],
+                board: this.board.matrix,
+            });
         }
     }
     judge() {
