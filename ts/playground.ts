@@ -166,7 +166,7 @@ export class Playground {
             }
         });
     };
-    protected judge() {
+    protected judge(): void {
         let winnerMark: "O" | "X" | null = null;
 
         // Check each row
