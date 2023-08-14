@@ -1,11 +1,11 @@
 // Notice the .js in path below
+import HumanPlayer from "./humanPlayer.js";
+import { GraphPlayer } from "./mlPlayer.js";
 import {
-    Playground,
     CompleteTrainingEvent,
+    Playground,
     TrainingGround,
 } from "./playground.js";
-import { GraphPlayer } from "./mlPlayer.js";
-import HumanPlayer from "./humanPlayer.js";
 
 const controlBar: HTMLElement = document.getElementById("control-bar")!;
 const reloadBtnInControlBar: HTMLButtonElement = document.getElementById(

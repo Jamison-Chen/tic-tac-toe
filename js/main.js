@@ -1,6 +1,6 @@
-import { Playground, TrainingGround, } from "./playground.js";
-import { GraphPlayer } from "./mlPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
+import { GraphPlayer } from "./mlPlayer.js";
+import { Playground, TrainingGround, } from "./playground.js";
 const controlBar = document.getElementById("control-bar");
 const reloadBtnInControlBar = document.getElementById("reload-btn-in-control-bar");
 const multiplayerBtn = document.getElementById("multiplayer-btn");

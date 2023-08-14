@@ -1,7 +1,7 @@
-import { AutoPlayer } from "./player.js";
-import { GraphPlayer } from "./mlPlayer.js";
-import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
+import { GraphPlayer } from "./mlPlayer.js";
+import { AutoPlayer } from "./player.js";
+import RandomPlayer from "./randomPlayer.js";
 class Board {
     constructor(matrix, div) {
         this.matrix = matrix;

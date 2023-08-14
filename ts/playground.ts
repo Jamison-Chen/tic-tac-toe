@@ -1,7 +1,7 @@
-import { AutoPlayer, Player } from "./player.js";
-import { GraphPlayer } from "./mlPlayer.js";
-import RandomPlayer from "./randomPlayer.js";
 import HumanPlayer from "./humanPlayer.js";
+import { GraphPlayer } from "./mlPlayer.js";
+import { AutoPlayer, Player } from "./player.js";
+import RandomPlayer from "./randomPlayer.js";
 
 export interface MoveEvent {
     position: [number, number];
