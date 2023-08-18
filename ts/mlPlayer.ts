@@ -25,6 +25,8 @@ class Node {
     }
 }
 
+type Graph = { [key: string]: Node };
+
 type PathInfo = {
     rotatedKey: string;
     rotateCount: number;
@@ -37,7 +39,7 @@ type NodeWithRotateCount = {
 
 export class GraphPlayer extends AutoPlayer {
     private path: PathInfo[];
-    private database: { [key: string]: Node };
+    private database: Graph;
     public markPlaying: "O" | "X" | null;
     public winCount: number;
     public constructor() {

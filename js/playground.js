@@ -8,7 +8,26 @@ class Board {
         this.div = div;
         this.div.classList.remove("X");
         this.div.classList.add("O");
+    }
+    show() {
         this.div.classList.add("show");
+    }
+    hide() {
+        this.div.classList.remove("show");
+    }
+    get diagnal1() {
+        return [
+            this.matrix[0][0].mark,
+            this.matrix[1][1].mark,
+            this.matrix[2][2].mark,
+        ];
+    }
+    get diagnal2() {
+        return [
+            this.matrix[0][2].mark,
+            this.matrix[1][1].mark,
+            this.matrix[2][0].mark,
+        ];
     }
 }
 export class Cell {
@@ -97,9 +116,7 @@ export class Playground {
             setTimeout(() => {
                 if (this.isTraining && this.remainingEpoch === 0) {
                     this.isTraining = false;
-                    document.dispatchEvent(new CustomEvent("completeTraining", {
-                        detail: { game: this },
-                    }));
+                    document.dispatchEvent(new CustomEvent("completeTraining"));
                 }
                 else if (this.nonStopping || this.remainingEpoch > 0) {
                     this.remainingGames = this.gamesPerEpoch;
@@ -145,21 +162,13 @@ export class Playground {
             }
         }
         if (winnerMark === null) {
-            const diagnal1 = [
-                this.board.matrix[0][0].mark,
-                this.board.matrix[1][1].mark,
-                this.board.matrix[2][2].mark,
-            ];
-            const diagnal2 = [
-                this.board.matrix[0][2].mark,
-                this.board.matrix[1][1].mark,
-                this.board.matrix[2][0].mark,
-            ];
-            if (diagnal1.every((mark) => mark === diagnal1[0] && diagnal1[0] !== " ")) {
-                winnerMark = diagnal1[0];
+            if (this.board.diagnal1.every((mark) => mark === this.board.diagnal1[0] &&
+                this.board.diagnal1[0] !== " ")) {
+                winnerMark = this.board.diagnal1[0];
             }
-            else if (diagnal2.every((mark) => mark === diagnal2[0] && diagnal2[0] !== " ")) {
-                winnerMark = diagnal2[0];
+            else if (this.board.diagnal2.every((mark) => mark === this.board.diagnal2[0] &&
+                this.board.diagnal2[0] !== " ")) {
+                winnerMark = this.board.diagnal2[0];
             }
         }
         if (winnerMark) {
@@ -205,6 +214,10 @@ export class Playground {
         }
         Playground.endingScreenDiv.classList.remove("show");
         this.board = this.initBoard();
+        if (!isTraining)
+            this.board.show();
+        else
+            this.board.hide();
         if (Math.random() >= 0.5) {
             this.currentPlayer = this.player1;
             this.player1.markPlaying = "O";
@@ -279,9 +292,7 @@ export class TrainingGround extends Playground {
             this.printResultOfCurrentEpoch();
             this.resetResultOfCurrentEpoch();
         }
-        document.dispatchEvent(new CustomEvent("completeTraining", {
-            detail: { game: null },
-        }));
+        document.dispatchEvent(new CustomEvent("completeTraining"));
     }
     startTrainEpoch() {
         this.prepare();
@@ -322,6 +333,7 @@ export class TrainingGround extends Playground {
     }
     prepare() {
         this.board = this.initBoard();
+        this.board.hide();
         this.isGameRunning = true;
         if (Math.random() >= 0.5) {
             this.currentPlayer = this.player1;
@@ -370,21 +382,13 @@ export class TrainingGround extends Playground {
             }
         }
         if (winnerMark === null) {
-            const diagnal1 = [
-                this.board.matrix[0][0].mark,
-                this.board.matrix[1][1].mark,
-                this.board.matrix[2][2].mark,
-            ];
-            const diagnal2 = [
-                this.board.matrix[0][2].mark,
-                this.board.matrix[1][1].mark,
-                this.board.matrix[2][0].mark,
-            ];
-            if (diagnal1.every((mark) => mark === diagnal1[0] && diagnal1[0] !== " ")) {
-                winnerMark = diagnal1[0];
+            if (this.board.diagnal1.every((mark) => mark === this.board.diagnal1[0] &&
+                this.board.diagnal1[0] !== " ")) {
+                winnerMark = this.board.diagnal1[0];
             }
-            else if (diagnal2.every((mark) => mark === diagnal2[0] && diagnal2[0] !== " ")) {
-                winnerMark = diagnal2[0];
+            else if (this.board.diagnal2.every((mark) => mark === this.board.diagnal2[0] &&
+                this.board.diagnal2[0] !== " ")) {
+                winnerMark = this.board.diagnal2[0];
             }
         }
         if (winnerMark) {

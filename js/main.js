@@ -1,48 +1,43 @@
 import HumanPlayer from "./humanPlayer.js";
 import { GraphPlayer } from "./mlPlayer.js";
-import { Playground, TrainingGround, } from "./playground.js";
-const controlBar = document.getElementById("control-bar");
-const reloadBtnInControlBar = document.getElementById("reload-btn-in-control-bar");
-const multiplayerBtn = document.getElementById("multiplayer-btn");
-const naiveMachineBtn = document.getElementById("naive-machine-btn");
-const trainedMachineBtn = document.getElementById("trained-machine-btn");
-const reloadBtnInEndingScreen = document.getElementById("reload-btn-in-ending-screen");
-const mlPlayer = new GraphPlayer();
-multiplayerBtn.addEventListener("click", () => startP2PGame());
-naiveMachineBtn.addEventListener("click", () => startP2CGame(false));
-trainedMachineBtn.addEventListener("click", () => startP2CGame(true));
-reloadBtnInControlBar.addEventListener("click", () => location.reload());
-reloadBtnInEndingScreen.addEventListener("click", () => location.reload());
-function startP2PGame() {
-    moveControlBar();
-    const game = new Playground(new HumanPlayer(), new HumanPlayer());
-    game.start(false);
-}
-function startP2CGame(shouldTrain) {
-    moveControlBar();
-    if (shouldTrain) {
-        document.addEventListener("completeTraining", onCompleteTraining);
-        const game = new TrainingGround(mlPlayer, new GraphPlayer());
-        game.trainMachine(2400, 400);
+import { Playground, TrainingGround } from "./playground.js";
+import RandomPlayer from "./randomPlayer.js";
+class Main {
+    static main() {
+        Main.multiplayerBtn.addEventListener("click", Main.startP2PGame);
+        Main.naiveMachineBtn.addEventListener("click", () => {
+            Main.startP2CGame(false);
+        });
+        Main.trainedMachineBtn.addEventListener("click", () => {
+            Main.startP2CGame(true);
+        });
+        Main.reloadBtnInControlBar.addEventListener("click", () => {
+            location.reload();
+        });
+        Main.reloadBtnInEndingScreen.addEventListener("click", () => {
+            Main.game.start();
+        });
+        Main.mlPlayer = new GraphPlayer();
+        new TrainingGround(Main.mlPlayer, new GraphPlayer()).trainMachine(2400, 400);
     }
-    else {
-        const game = new Playground(mlPlayer, new HumanPlayer());
-        game.start();
+    static moveControlBar() {
+        Main.controlBar.classList.add("bottom");
     }
 }
-function moveControlBar() {
-    controlBar.classList.add("bottom");
-}
-const onCompleteTraining = (e) => {
-    setTimeout(() => {
-        if (e.detail.game) {
-            e.detail.game.player1 = mlPlayer;
-            e.detail.game.player2 = new HumanPlayer();
-            e.detail.game.start(false, true);
-        }
-        else {
-            const game = new Playground(mlPlayer, new HumanPlayer());
-            game.start(false, true);
-        }
-    });
+Main.controlBar = document.getElementById("control-bar");
+Main.reloadBtnInControlBar = document.getElementById("reload-btn-in-control-bar");
+Main.multiplayerBtn = document.getElementById("multiplayer-btn");
+Main.naiveMachineBtn = document.getElementById("naive-machine-btn");
+Main.trainedMachineBtn = document.getElementById("trained-machine-btn");
+Main.reloadBtnInEndingScreen = document.getElementById("reload-btn-in-ending-screen");
+Main.startP2PGame = () => {
+    Main.moveControlBar();
+    Main.game = new Playground(new HumanPlayer(), new HumanPlayer());
+    Main.game.start(false);
 };
+Main.startP2CGame = (shouldTrain) => {
+    Main.moveControlBar();
+    Main.game = new Playground(shouldTrain ? Main.mlPlayer : new RandomPlayer(), new HumanPlayer());
+    Main.game.start();
+};
+Main.main();

@@ -8,9 +8,7 @@ export interface MoveEvent {
     markPlaying: "O" | "X";
 }
 
-export interface CompleteTrainingEvent {
-    game: Playground | null;
-}
+interface CompleteTrainingEvent {}
 
 interface GameOverEvent {
     winner: Player | null;
@@ -24,7 +22,26 @@ class Board {
         this.div = div;
         this.div.classList.remove("X");
         this.div.classList.add("O");
+    }
+    public show(): void {
         this.div.classList.add("show");
+    }
+    public hide(): void {
+        this.div.classList.remove("show");
+    }
+    public get diagnal1(): ("O" | "X" | " ")[] {
+        return [
+            this.matrix[0][0].mark,
+            this.matrix[1][1].mark,
+            this.matrix[2][2].mark,
+        ];
+    }
+    public get diagnal2(): ("O" | "X" | " ")[] {
+        return [
+            this.matrix[0][2].mark,
+            this.matrix[1][1].mark,
+            this.matrix[2][0].mark,
+        ];
     }
 }
 
@@ -156,9 +173,7 @@ export class Playground {
             if (this.isTraining && this.remainingEpoch === 0) {
                 this.isTraining = false;
                 document.dispatchEvent(
-                    new CustomEvent<CompleteTrainingEvent>("completeTraining", {
-                        detail: { game: this },
-                    })
+                    new CustomEvent<CompleteTrainingEvent>("completeTraining")
                 );
             } else if (this.nonStopping || this.remainingEpoch > 0) {
                 this.remainingGames = this.gamesPerEpoch;
@@ -201,28 +216,22 @@ export class Playground {
         }
         if (winnerMark === null) {
             // Check each diagnal
-            const diagnal1: ("O" | "X" | " ")[] = [
-                this.board!.matrix[0][0].mark,
-                this.board!.matrix[1][1].mark,
-                this.board!.matrix[2][2].mark,
-            ];
-            const diagnal2: ("O" | "X" | " ")[] = [
-                this.board!.matrix[0][2].mark,
-                this.board!.matrix[1][1].mark,
-                this.board!.matrix[2][0].mark,
-            ];
             if (
-                diagnal1.every(
-                    (mark) => mark === diagnal1[0] && diagnal1[0] !== " "
+                this.board!.diagnal1.every(
+                    (mark) =>
+                        mark === this.board!.diagnal1[0] &&
+                        this.board!.diagnal1[0] !== " "
                 )
             ) {
-                winnerMark = diagnal1[0] as "O" | "X";
+                winnerMark = this.board!.diagnal1[0] as "O" | "X";
             } else if (
-                diagnal2.every(
-                    (mark) => mark === diagnal2[0] && diagnal2[0] !== " "
+                this.board!.diagnal2.every(
+                    (mark) =>
+                        mark === this.board!.diagnal2[0] &&
+                        this.board!.diagnal2[0] !== " "
                 )
             ) {
-                winnerMark = diagnal2[0] as "O" | "X";
+                winnerMark = this.board!.diagnal2[0] as "O" | "X";
             }
         }
 
@@ -285,6 +294,8 @@ export class Playground {
         }
         Playground.endingScreenDiv.classList.remove("show");
         this.board = this.initBoard();
+        if (!isTraining) this.board.show();
+        else this.board.hide();
 
         // Choose and record first player
         if (Math.random() >= 0.5) {
@@ -375,9 +386,7 @@ export class TrainingGround extends Playground {
             this.resetResultOfCurrentEpoch();
         }
         document.dispatchEvent(
-            new CustomEvent<CompleteTrainingEvent>("completeTraining", {
-                detail: { game: null },
-            })
+            new CustomEvent<CompleteTrainingEvent>("completeTraining")
         );
     }
     private startTrainEpoch(): void {
@@ -419,6 +428,7 @@ export class TrainingGround extends Playground {
     }
     private prepare(): void {
         this.board = this.initBoard();
+        this.board.hide();
         this.isGameRunning = true;
         if (Math.random() >= 0.5) {
             this.currentPlayer = this.player1;
@@ -480,28 +490,22 @@ export class TrainingGround extends Playground {
         }
         if (winnerMark === null) {
             // Check each diagnal
-            const diagnal1: ("O" | "X" | " ")[] = [
-                this.board!.matrix[0][0].mark,
-                this.board!.matrix[1][1].mark,
-                this.board!.matrix[2][2].mark,
-            ];
-            const diagnal2: ("O" | "X" | " ")[] = [
-                this.board!.matrix[0][2].mark,
-                this.board!.matrix[1][1].mark,
-                this.board!.matrix[2][0].mark,
-            ];
             if (
-                diagnal1.every(
-                    (mark) => mark === diagnal1[0] && diagnal1[0] !== " "
+                this.board!.diagnal1.every(
+                    (mark) =>
+                        mark === this.board!.diagnal1[0] &&
+                        this.board!.diagnal1[0] !== " "
                 )
             ) {
-                winnerMark = diagnal1[0] as "O" | "X";
+                winnerMark = this.board!.diagnal1[0] as "O" | "X";
             } else if (
-                diagnal2.every(
-                    (mark) => mark === diagnal2[0] && diagnal2[0] !== " "
+                this.board!.diagnal2.every(
+                    (mark) =>
+                        mark === this.board!.diagnal2[0] &&
+                        this.board!.diagnal2[0] !== " "
                 )
             ) {
-                winnerMark = diagnal2[0] as "O" | "X";
+                winnerMark = this.board!.diagnal2[0] as "O" | "X";
             }
         }
         if (winnerMark) {
