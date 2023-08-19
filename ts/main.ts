@@ -54,11 +54,6 @@ class Main {
     };
     private static startP2CGame = (shouldTrain: boolean): void => {
         Main.moveControlBar();
-
-        //// Visualize training process (event-driven, very slow)
-        // game = new Playground(mlPlayer, new GraphPlayer());
-        // game.trainMachine(24, 12);
-
         Main.game = new Playground(
             shouldTrain ? Main.mlPlayer : new RandomPlayer(),
             new HumanPlayer()

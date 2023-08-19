@@ -1,5 +1,5 @@
 import { AutoPlayer } from "./player.js";
-import { Cell, Mark, MoveEvent } from "./playground.js";
+import { Cell, Mark, Position } from "./playground.js";
 import Utils from "./utils.js";
 
 class Node {
@@ -63,23 +63,25 @@ export class GraphPlayer extends AutoPlayer {
     private keyDiffToMovePosition(
         prevKey: string,
         currentKey: string
-    ): [number, number] {
+    ): Position {
         for (let i = 0; i < prevKey.length; i++) {
-            if (prevKey[i] !== currentKey[i]) return [Math.floor(i / 3), i % 3];
+            if (prevKey[i] !== currentKey[i]) {
+                return [Math.floor(i / 3), i % 3] as Position;
+            }
         }
         throw Error("Failed to translate key difference to move posititon...");
     }
     private getClockwiseRotatedPosition(
-        position: [number, number],
+        position: Position,
         rotateCount: number
-    ): [number, number] {
+    ): Position {
         rotateCount %= 4;
         if (rotateCount < 0) rotateCount += 4;
         const [r, c] = position;
         if (rotateCount === 0) return [r, c];
-        else if (rotateCount === 1) return [c, 2 - r];
-        else if (rotateCount === 2) return [2 - r, 2 - c];
-        else return [2 - c, r];
+        else if (rotateCount === 1) return [c, 2 - r] as Position;
+        else if (rotateCount === 2) return [2 - r, 2 - c] as Position;
+        else return [2 - c, r] as Position;
     }
     private genAllNextStateKeys(currentKey: string): string[] {
         const markCount: { [mark: string]: number } = { O: 0, X: 0, B: 0 };
@@ -127,7 +129,7 @@ export class GraphPlayer extends AutoPlayer {
     public clearPath(): void {
         this.path = [{ rotatedKey: "BBBBBBBBB", rotateCount: 0 }];
     }
-    public select(shouldDispatchEvent: boolean = true): [number, number] {
+    public select(shouldDispatchEvent: boolean = true): Position {
         const { rotatedKey, rotateCount } = this.path[this.path.length - 1];
         const currentNode = this.database[rotatedKey];
 
@@ -169,15 +171,7 @@ export class GraphPlayer extends AutoPlayer {
             rotatedBestChildNodeKey
         );
         position = this.getClockwiseRotatedPosition(position, -rotateCount);
-        if (shouldDispatchEvent) {
-            setTimeout(() => {
-                document.dispatchEvent(
-                    new CustomEvent<MoveEvent>("move", {
-                        detail: { position, markPlaying: this.markPlaying! },
-                    })
-                );
-            });
-        }
+        if (shouldDispatchEvent) this.dispatchEvent(position);
         return position;
     }
     private expand(targetNode: Node): void {

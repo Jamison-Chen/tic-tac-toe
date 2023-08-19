@@ -9,12 +9,6 @@ class Board {
         this.div.classList.remove("X");
         this.div.classList.add("O");
     }
-    show() {
-        this.div.classList.add("show");
-    }
-    hide() {
-        this.div.classList.remove("show");
-    }
     get diagnal1() {
         return [
             this.matrix[0][0].mark,
@@ -28,6 +22,15 @@ class Board {
             this.matrix[1][1].mark,
             this.matrix[2][0].mark,
         ];
+    }
+    show() {
+        this.div.classList.add("show");
+    }
+    hide() {
+        this.div.classList.remove("show");
+    }
+    changeMarkTheme(oldTheme, newTheme) {
+        this.div.classList.replace(oldTheme, newTheme);
     }
 }
 export class Cell {
@@ -73,12 +76,12 @@ export class Playground {
             this.judge();
         };
         this.onCallNextPlayer = () => {
-            const oldPlayerMark = this.currentPlayer?.markPlaying;
+            const oldPlayerMark = this.currentPlayer.markPlaying;
             this.currentPlayer =
                 this.currentPlayer === this.player1 ? this.player2 : this.player1;
-            this.board?.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
+            this.board.changeMarkTheme(oldPlayerMark, this.currentPlayer.markPlaying);
             if (!(this.currentPlayer instanceof HumanPlayer)) {
-                setTimeout(() => this.currentPlayer?.select());
+                setTimeout(() => this.currentPlayer.select());
             }
         };
         this.onGameOver = (e) => {
@@ -97,10 +100,7 @@ export class Playground {
                     player.resetChoices();
                 }
                 else if (player instanceof HumanPlayer) {
-                    Playground.endingMessageDiv.innerHTML = e.detail.winner
-                        ? `${e.detail.winner.markPlaying} wins!`
-                        : "Draw!";
-                    Playground.endingScreenDiv.className = "show";
+                    Playground.showEndingMessage(e.detail.winner);
                 }
             }
             this.remainingGames--;
@@ -142,6 +142,15 @@ export class Playground {
         document.addEventListener("callNextPlayer", this.onCallNextPlayer);
         document.addEventListener("gameOver", this.onGameOver);
         document.addEventListener("stop", this.onStop);
+    }
+    static showEndingMessage(winner) {
+        Playground.endingMessageDiv.innerHTML = winner
+            ? `${winner.markPlaying} wins!`
+            : "Draw!";
+        Playground.endingScreenDiv.className = "show";
+    }
+    static hideEndingMessage() {
+        Playground.endingScreenDiv.classList.remove("show");
     }
     judge() {
         const winnerMark = this.getWinnerMark();
@@ -208,7 +217,7 @@ export class Playground {
             this.player1.winCount = 0;
             this.player2.winCount = 0;
         }
-        Playground.endingScreenDiv.classList.remove("show");
+        Playground.hideEndingMessage();
         this.board = this.initBoard();
         if (!isTraining)
             this.board.show();
@@ -318,12 +327,10 @@ export class TrainingGround extends Playground {
                     break;
             }
             else {
-                const oldPlayerMark = this.currentPlayer?.markPlaying;
                 this.currentPlayer =
                     this.currentPlayer === this.player1
                         ? this.player2
                         : this.player1;
-                this.board?.div.classList.replace(oldPlayerMark, this.currentPlayer.markPlaying);
             }
         }
     }

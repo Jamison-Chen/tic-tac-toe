@@ -41,8 +41,9 @@ export class GraphPlayer extends AutoPlayer {
     }
     keyDiffToMovePosition(prevKey, currentKey) {
         for (let i = 0; i < prevKey.length; i++) {
-            if (prevKey[i] !== currentKey[i])
+            if (prevKey[i] !== currentKey[i]) {
                 return [Math.floor(i / 3), i % 3];
+            }
         }
         throw Error("Failed to translate key difference to move posititon...");
     }
@@ -129,13 +130,8 @@ export class GraphPlayer extends AutoPlayer {
         const rotatedBestChildNodeKey = this.getClockwiseRotatedKey(bestChildNodeWithRotateCount.node.key, -bestChildNodeWithRotateCount.rotateCount);
         let position = this.keyDiffToMovePosition(currentNode.key, rotatedBestChildNodeKey);
         position = this.getClockwiseRotatedPosition(position, -rotateCount);
-        if (shouldDispatchEvent) {
-            setTimeout(() => {
-                document.dispatchEvent(new CustomEvent("move", {
-                    detail: { position, markPlaying: this.markPlaying },
-                }));
-            });
-        }
+        if (shouldDispatchEvent)
+            this.dispatchEvent(position);
         return position;
     }
     expand(targetNode) {

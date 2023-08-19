@@ -1,5 +1,5 @@
 import { Player } from "./player.js";
-import { Mark, MoveEvent } from "./playground.js";
+import { Mark, Position } from "./playground.js";
 
 export default class HumanPlayer extends Player {
     public markPlaying: Mark;
@@ -9,17 +9,8 @@ export default class HumanPlayer extends Player {
         this.markPlaying = null;
         this.winCount = 0;
     }
-    public select(position: [number, number]): [number, number] {
-        setTimeout(() => {
-            document.dispatchEvent(
-                new CustomEvent<MoveEvent>("move", {
-                    detail: {
-                        position: position,
-                        markPlaying: this.markPlaying!,
-                    },
-                })
-            );
-        });
+    public select(position: Position): Position {
+        this.dispatchEvent(position);
         return position;
     }
 }

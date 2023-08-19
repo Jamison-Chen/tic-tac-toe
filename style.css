@@ -73,11 +73,6 @@ body {
     border-bottom: none;
 }
 
-.cell.X,
-.cell.O {
-    cursor: default;
-}
-
 .cell.X::before,
 .cell.X::after,
 .cell.O::before,

@@ -3,8 +3,10 @@ import { GraphPlayer } from "./mlPlayer.js";
 import { AutoPlayer, Player } from "./player.js";
 import RandomPlayer from "./randomPlayer.js";
 
+export type Position = [0 | 1 | 2, 0 | 1 | 2];
+
 export interface MoveEvent {
-    position: [number, number];
+    position: Position;
     markPlaying: NonNullable<Mark>;
 }
 
@@ -16,18 +18,12 @@ interface GameOverEvent {
 
 class Board {
     public matrix: Cell[][];
-    public div: HTMLDivElement;
+    private div: HTMLDivElement;
     public constructor(matrix: Cell[][], div: HTMLDivElement) {
         this.matrix = matrix;
         this.div = div;
         this.div.classList.remove("X");
         this.div.classList.add("O");
-    }
-    public show(): void {
-        this.div.classList.add("show");
-    }
-    public hide(): void {
-        this.div.classList.remove("show");
     }
     public get diagnal1(): Mark[] {
         return [
@@ -42,6 +38,18 @@ class Board {
             this.matrix[1][1].mark,
             this.matrix[2][0].mark,
         ];
+    }
+    public show(): void {
+        this.div.classList.add("show");
+    }
+    public hide(): void {
+        this.div.classList.remove("show");
+    }
+    public changeMarkTheme(
+        oldTheme: NonNullable<Mark>,
+        newTheme: NonNullable<Mark>
+    ): void {
+        this.div.classList.replace(oldTheme, newTheme);
     }
 }
 
@@ -103,11 +111,9 @@ export class Playground {
     }
     private onClick = (e: Event): void => {
         if (this.currentPlayer instanceof HumanPlayer) {
-            const position: [number, number] = (
-                e.currentTarget as HTMLDivElement
-            ).id
+            const position = (e.currentTarget as HTMLDivElement).id
                 .split(",")
-                .map((e) => parseInt(e)) as [number, number];
+                .map((e) => parseInt(e)) as Position;
             this.currentPlayer.select(position);
         } else throw Error("A cell can only be clicked by a human.");
     };
@@ -126,16 +132,16 @@ export class Playground {
         this.judge();
     };
     protected onCallNextPlayer = (): void => {
-        const oldPlayerMark: string = this.currentPlayer?.markPlaying!;
+        const oldPlayerMark = this.currentPlayer!.markPlaying!;
         this.currentPlayer =
             this.currentPlayer === this.player1 ? this.player2 : this.player1;
-        this.board?.div.classList.replace(
+        this.board!.changeMarkTheme(
             oldPlayerMark,
             this.currentPlayer.markPlaying!
         );
 
         if (!(this.currentPlayer instanceof HumanPlayer)) {
-            setTimeout(() => this.currentPlayer?.select());
+            setTimeout(() => this.currentPlayer!.select());
         }
     };
     protected onGameOver = (e: CustomEvent<GameOverEvent>): void => {
@@ -154,10 +160,7 @@ export class Playground {
             } else if (player instanceof RandomPlayer) {
                 player.resetChoices();
             } else if (player instanceof HumanPlayer) {
-                Playground.endingMessageDiv.innerHTML = e.detail.winner
-                    ? `${e.detail.winner.markPlaying} wins!`
-                    : "Draw!";
-                Playground.endingScreenDiv.className = "show";
+                Playground.showEndingMessage(e.detail.winner);
             }
         }
 
@@ -167,6 +170,15 @@ export class Playground {
             else document.dispatchEvent(new CustomEvent("stop"));
         });
     };
+    private static showEndingMessage(winner: Player | null): void {
+        Playground.endingMessageDiv.innerHTML = winner
+            ? `${winner.markPlaying} wins!`
+            : "Draw!";
+        Playground.endingScreenDiv.className = "show";
+    }
+    private static hideEndingMessage(): void {
+        Playground.endingScreenDiv.classList.remove("show");
+    }
     protected onStop = (): void => {
         if (this.isTraining) {
             this.printResultOfCurrentEpoch();
@@ -289,7 +301,7 @@ export class Playground {
             this.player1.winCount = 0;
             this.player2.winCount = 0;
         }
-        Playground.endingScreenDiv.classList.remove("show");
+        Playground.hideEndingMessage();
         this.board = this.initBoard();
         if (!isTraining) this.board.show();
         else this.board.hide();
@@ -411,15 +423,10 @@ export class TrainingGround extends Playground {
                 if (this.remainingGames > 0) this.prepare();
                 else break;
             } else {
-                const oldPlayerMark: string = this.currentPlayer?.markPlaying!;
                 this.currentPlayer =
                     this.currentPlayer === this.player1
                         ? this.player2
                         : this.player1;
-                this.board?.div.classList.replace(
-                    oldPlayerMark,
-                    this.currentPlayer.markPlaying!
-                );
             }
         }
     }

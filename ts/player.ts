@@ -1,14 +1,27 @@
-import { Cell, Mark } from "./playground.js";
+import { Cell, Mark, MoveEvent, Position } from "./playground.js";
 
 export abstract class Player {
     public abstract markPlaying: Mark;
     public abstract winCount: number;
-    public abstract select(...arg: any): [number, number];
+    public abstract select(...arg: any): Position;
+    public dispatchEvent(position: Position, delay?: number): void {
+        setTimeout(() => {
+            document.dispatchEvent(
+                new CustomEvent<MoveEvent>("move", {
+                    detail: { position, markPlaying: this.markPlaying! },
+                })
+            );
+        }, delay);
+    }
 }
 
 export abstract class AutoPlayer extends Player {
     public abstract moveWithOpponent(info: {
-        position?: [number, number];
+        position?: Position;
         board?: Cell[][];
     }): void;
+    public abstract select(shouldDispatchEvent: boolean): Position;
+    public dispatchEvent(position: Position, delay: number = 100): void {
+        super.dispatchEvent(position, delay);
+    }
 }

@@ -1,9 +1,9 @@
 import { AutoPlayer } from "./player.js";
-import { Mark, MoveEvent } from "./playground.js";
+import { Mark, Position } from "./playground.js";
 
 export default class RandomPlayer extends AutoPlayer {
-    private allChoices: [number, number][];
-    private availableChoices: [number, number][];
+    private allChoices: Position[];
+    private availableChoices: Position[];
     public markPlaying: Mark;
     public winCount: number;
     public constructor() {
@@ -19,31 +19,25 @@ export default class RandomPlayer extends AutoPlayer {
             [2, 1],
             [2, 2],
         ];
-        this.availableChoices = this.allChoices;
+        this.availableChoices = structuredClone(this.allChoices);
         this.markPlaying = null;
         this.winCount = 0;
     }
     public resetChoices(): void {
-        this.availableChoices = this.allChoices;
+        this.availableChoices = structuredClone(this.allChoices);
     }
-    public moveWithOpponent(info: { position: [number, number] }): void {
+    public moveWithOpponent(info: { position: Position }): void {
         this.availableChoices = this.availableChoices.filter((each) => {
             return each[0] !== info.position[0] || each[1] !== info.position[1];
         });
     }
-    public select(): [number, number] {
-        const position: [number, number] =
+    public select(shouldDispatchEvent: boolean = true): Position {
+        const position: Position =
             this.availableChoices[
                 Math.floor(Math.random() * this.availableChoices.length)
             ];
         this.moveWithOpponent({ position });
-        setTimeout(() => {
-            document.dispatchEvent(
-                new CustomEvent<MoveEvent>("move", {
-                    detail: { position, markPlaying: this.markPlaying! },
-                })
-            );
-        });
+        if (shouldDispatchEvent) this.dispatchEvent(position);
         return position;
     }
 }
