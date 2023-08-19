@@ -5,7 +5,7 @@ import RandomPlayer from "./randomPlayer.js";
 
 export interface MoveEvent {
     position: [number, number];
-    markPlaying: "O" | "X";
+    markPlaying: NonNullable<Mark>;
 }
 
 interface CompleteTrainingEvent {}
@@ -29,14 +29,14 @@ class Board {
     public hide(): void {
         this.div.classList.remove("show");
     }
-    public get diagnal1(): ("O" | "X" | " ")[] {
+    public get diagnal1(): Mark[] {
         return [
             this.matrix[0][0].mark,
             this.matrix[1][1].mark,
             this.matrix[2][2].mark,
         ];
     }
-    public get diagnal2(): ("O" | "X" | " ")[] {
+    public get diagnal2(): Mark[] {
         return [
             this.matrix[0][2].mark,
             this.matrix[1][1].mark,
@@ -47,17 +47,17 @@ class Board {
 
 export class Cell {
     private div: HTMLDivElement;
-    private _mark: " " | "O" | "X";
+    private _mark: Mark;
     private onClick: EventListener;
     public constructor(div: HTMLDivElement, onClick: EventListener) {
         this.div = div;
-        this._mark = " ";
+        this._mark = null;
         this.onClick = onClick;
         this.div.classList.remove("O", "X");
         this.div.removeEventListener("click", this.onClick);
         this.div.addEventListener("click", this.onClick, { once: true });
     }
-    public setMark(mark: "O" | "X"): void {
+    public setMark(mark: NonNullable<Mark>): void {
         this._mark = mark;
         this.div.classList.add(this._mark);
         this.div.removeEventListener("click", this.onClick);
@@ -66,6 +66,8 @@ export class Cell {
         return this._mark;
     }
 }
+
+export type Mark = "O" | "X" | null;
 
 export class Playground {
     public static endingScreenDiv: HTMLElement =
@@ -100,12 +102,14 @@ export class Playground {
         document.addEventListener("stop", this.onStop);
     }
     private onClick = (e: Event): void => {
-        const position: [number, number] = (
-            e.currentTarget as HTMLDivElement
-        ).id
-            .split(",")
-            .map((e) => parseInt(e)) as [number, number];
-        (this.currentPlayer as HumanPlayer).select(position);
+        if (this.currentPlayer instanceof HumanPlayer) {
+            const position: [number, number] = (
+                e.currentTarget as HTMLDivElement
+            ).id
+                .split(",")
+                .map((e) => parseInt(e)) as [number, number];
+            this.currentPlayer.select(position);
+        } else throw Error("A cell can only be clicked by a human.");
     };
     protected onPlayerMove = (e: CustomEvent<MoveEvent>): void => {
         const [r, c] = e.detail.position;
@@ -182,59 +186,7 @@ export class Playground {
         });
     };
     protected judge(): void {
-        let winnerMark: "O" | "X" | null = null;
-
-        // Check each row
-        for (let i = 0; i < this.board!.matrix.length; i++) {
-            if (
-                this.board?.matrix[i].every((cell) => {
-                    return (
-                        cell.mark === this.board?.matrix[i][0].mark &&
-                        this.board.matrix[i][0].mark !== " "
-                    );
-                })
-            ) {
-                winnerMark = this.board.matrix[i][0].mark as "O" | "X";
-                break;
-            }
-        }
-        if (winnerMark === null) {
-            // Check each column
-            for (let i = 0; i < this.board!.matrix[0].length; i++) {
-                if (
-                    this.board?.matrix.every((row) => {
-                        return (
-                            row[i].mark === this.board?.matrix[0][i].mark &&
-                            this.board.matrix[0][i].mark !== " "
-                        );
-                    })
-                ) {
-                    winnerMark = this.board.matrix[0][i].mark as "O" | "X";
-                    break;
-                }
-            }
-        }
-        if (winnerMark === null) {
-            // Check each diagnal
-            if (
-                this.board!.diagnal1.every(
-                    (mark) =>
-                        mark === this.board!.diagnal1[0] &&
-                        this.board!.diagnal1[0] !== " "
-                )
-            ) {
-                winnerMark = this.board!.diagnal1[0] as "O" | "X";
-            } else if (
-                this.board!.diagnal2.every(
-                    (mark) =>
-                        mark === this.board!.diagnal2[0] &&
-                        this.board!.diagnal2[0] !== " "
-                )
-            ) {
-                winnerMark = this.board!.diagnal2[0] as "O" | "X";
-            }
-        }
-
+        const winnerMark = this.getWinnerMark();
         if (winnerMark) {
             for (const player of [this.player1, this.player2]) {
                 if (player.markPlaying === winnerMark) {
@@ -250,9 +202,7 @@ export class Playground {
             }
             throw Error(`Cannot find winner with mark: ${winnerMark}`);
         } else if (
-            !this.board?.matrix.some((row) =>
-                row.some((cell) => cell.mark === " ")
-            )
+            !this.board?.matrix.some((row) => row.some((cell) => !cell.mark))
         ) {
             setTimeout(() =>
                 document.dispatchEvent(
@@ -266,6 +216,53 @@ export class Playground {
                 document.dispatchEvent(new CustomEvent("callNextPlayer"))
             );
         }
+    }
+    protected getWinnerMark(): Mark {
+        let winnerMark: Mark = null;
+
+        // Check each row
+        for (let i = 0; i < this.board!.matrix.length; i++) {
+            if (
+                this.board?.matrix[i].every(
+                    (cell) =>
+                        this.board?.matrix[i][0].mark &&
+                        cell.mark === this.board.matrix[i][0].mark
+                )
+            ) {
+                return this.board.matrix[i][0].mark;
+            }
+        }
+
+        // Check each column
+        for (let i = 0; i < this.board!.matrix[0].length; i++) {
+            if (
+                this.board?.matrix.every(
+                    (row) =>
+                        this.board?.matrix[0][i].mark &&
+                        row[i].mark === this.board?.matrix[0][i].mark
+                )
+            ) {
+                return this.board.matrix[0][i].mark;
+            }
+        }
+
+        // Check each diagnal
+        if (
+            this.board!.diagnal1.every(
+                (mark) =>
+                    this.board?.diagnal1[0] && mark === this.board.diagnal1[0]
+            )
+        ) {
+            return this.board!.diagnal1[0];
+        } else if (
+            this.board!.diagnal2.every(
+                (mark) =>
+                    this.board?.diagnal2[0] && mark === this.board.diagnal2[0]
+            )
+        ) {
+            return this.board!.diagnal2[0];
+        }
+        return winnerMark;
     }
     protected initBoard(): Board {
         const matrix: Cell[][] = new Array(3)
@@ -456,58 +453,7 @@ export class TrainingGround extends Playground {
         }
     }
     protected judge(): Player | null {
-        let winnerMark: "O" | "X" | null = null;
-
-        // Check each row
-        for (let i = 0; i < this.board!.matrix.length; i++) {
-            if (
-                this.board?.matrix[i].every((cell) => {
-                    return (
-                        cell.mark === this.board?.matrix[i][0].mark &&
-                        this.board.matrix[i][0].mark !== " "
-                    );
-                })
-            ) {
-                winnerMark = this.board.matrix[i][0].mark as "O" | "X";
-                break;
-            }
-        }
-        if (winnerMark === null) {
-            // Check each column
-            for (let i = 0; i < this.board!.matrix[0].length; i++) {
-                if (
-                    this.board?.matrix.every((row) => {
-                        return (
-                            row[i].mark === this.board?.matrix[0][i].mark &&
-                            this.board.matrix[0][i].mark !== " "
-                        );
-                    })
-                ) {
-                    winnerMark = this.board.matrix[0][i].mark as "O" | "X";
-                    break;
-                }
-            }
-        }
-        if (winnerMark === null) {
-            // Check each diagnal
-            if (
-                this.board!.diagnal1.every(
-                    (mark) =>
-                        mark === this.board!.diagnal1[0] &&
-                        this.board!.diagnal1[0] !== " "
-                )
-            ) {
-                winnerMark = this.board!.diagnal1[0] as "O" | "X";
-            } else if (
-                this.board!.diagnal2.every(
-                    (mark) =>
-                        mark === this.board!.diagnal2[0] &&
-                        this.board!.diagnal2[0] !== " "
-                )
-            ) {
-                winnerMark = this.board!.diagnal2[0] as "O" | "X";
-            }
-        }
+        const winnerMark = this.getWinnerMark();
         if (winnerMark) {
             this.isGameRunning = false;
             for (const player of [this.player1, this.player2]) {
@@ -515,9 +461,7 @@ export class TrainingGround extends Playground {
             }
             throw Error(`Cannot find winner with mark: ${winnerMark}`);
         } else if (
-            !this.board?.matrix.some((row) =>
-                row.some((cell) => cell.mark === " ")
-            )
+            !this.board?.matrix.some((row) => row.some((cell) => !cell.mark))
         ) {
             this.isGameRunning = false;
         }

@@ -1,10 +1,10 @@
 import { AutoPlayer } from "./player.js";
-import { MoveEvent } from "./playground.js";
+import { Mark, MoveEvent } from "./playground.js";
 
 export default class RandomPlayer extends AutoPlayer {
     private allChoices: [number, number][];
     private availableChoices: [number, number][];
-    public markPlaying: "O" | "X" | null;
+    public markPlaying: Mark;
     public winCount: number;
     public constructor() {
         super();

@@ -31,7 +31,7 @@ export class GraphPlayer extends AutoPlayer {
         let key = "";
         for (let r = 0; r < board.length; r++) {
             for (let c = 0; c < board[r].length; c++) {
-                if (board[r][c].mark === " ")
+                if (!board[r][c].mark)
                     key += "B";
                 else
                     key += board[r][c].mark;
@@ -176,7 +176,7 @@ export class GraphPlayer extends AutoPlayer {
             const childScores = this.database[parentKey].children
                 .map((child) => this.database[child.rotatedKey])
                 .map((node) => node.score);
-            if (childScores.find((score) => score === null)) {
+            if (!Utils.isNonNullArray(childScores)) {
                 this.database[parentKey].score = null;
             }
             else {

@@ -1,7 +1,7 @@
-import { Cell } from "./playground.js";
+import { Cell, Mark } from "./playground.js";
 
 export abstract class Player {
-    public abstract markPlaying: "O" | "X" | null;
+    public abstract markPlaying: Mark;
     public abstract winCount: number;
     public abstract select(...arg: any): [number, number];
 }

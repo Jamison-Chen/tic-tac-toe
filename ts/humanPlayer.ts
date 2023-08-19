@@ -1,8 +1,8 @@
 import { Player } from "./player.js";
-import { MoveEvent } from "./playground.js";
+import { Mark, MoveEvent } from "./playground.js";
 
 export default class HumanPlayer extends Player {
-    public markPlaying: "O" | "X" | null;
+    public markPlaying: Mark;
     public winCount: number;
     public constructor() {
         super();

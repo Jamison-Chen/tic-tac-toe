@@ -1,5 +1,5 @@
 import { AutoPlayer } from "./player.js";
-import { Cell, MoveEvent } from "./playground.js";
+import { Cell, Mark, MoveEvent } from "./playground.js";
 import Utils from "./utils.js";
 
 class Node {
@@ -40,7 +40,7 @@ type NodeWithRotateCount = {
 export class GraphPlayer extends AutoPlayer {
     private path: PathInfo[];
     private database: Graph;
-    public markPlaying: "O" | "X" | null;
+    public markPlaying: Mark;
     public winCount: number;
     public constructor() {
         super();
@@ -54,7 +54,7 @@ export class GraphPlayer extends AutoPlayer {
         let key = "";
         for (let r = 0; r < board.length; r++) {
             for (let c = 0; c < board[r].length; c++) {
-                if (board[r][c].mark === " ") key += "B";
+                if (!board[r][c].mark) key += "B";
                 else key += board[r][c].mark;
             }
         }
@@ -218,17 +218,13 @@ export class GraphPlayer extends AutoPlayer {
             const childScores = this.database[parentKey].children
                 .map((child) => this.database[child.rotatedKey])
                 .map((node) => node.score);
-            if (childScores.find((score) => score === null)) {
+            if (!Utils.isNonNullArray(childScores)) {
                 this.database[parentKey].score = null;
             } else {
                 if (remainingPath.length % 2 === 1) {
-                    this.database[parentKey].score = Math.min(
-                        ...(childScores as number[])
-                    );
+                    this.database[parentKey].score = Math.min(...childScores);
                 } else {
-                    this.database[parentKey].score = Math.max(
-                        ...(childScores as number[])
-                    );
+                    this.database[parentKey].score = Math.max(...childScores);
                 }
             }
         }

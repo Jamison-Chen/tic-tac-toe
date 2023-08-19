@@ -39,4 +39,7 @@ export default class Utils {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
+    public static isNonNullArray<T>(array: T[]): array is NonNullable<T>[] {
+        return !array.find((e) => e === null);
+    }
 }
