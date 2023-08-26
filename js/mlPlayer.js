@@ -51,15 +51,10 @@ export class GraphPlayer extends AutoPlayer {
         rotateCount %= 4;
         if (rotateCount < 0)
             rotateCount += 4;
-        const [r, c] = position;
-        if (rotateCount === 0)
-            return [r, c];
-        else if (rotateCount === 1)
-            return [c, 2 - r];
-        else if (rotateCount === 2)
-            return [2 - r, 2 - c];
-        else
-            return [2 - c, r];
+        let [r, c] = position;
+        for (let i = 0; i < rotateCount; i++)
+            [r, c] = [c, 2 - r];
+        return [r, c];
     }
     genAllNextStateKeys(currentKey) {
         const markCount = { O: 0, X: 0, B: 0 };
@@ -90,8 +85,12 @@ export class GraphPlayer extends AutoPlayer {
             rotateCount += 4;
         let newKey = key;
         for (let i = 0; i < rotateCount; i++) {
-            const a = newKey.split("");
-            newKey = `${a[6]}${a[3]}${a[0]}${a[7]}${a[4]}${a[1]}${a[8]}${a[5]}${a[2]}`;
+            const keyArray = newKey.split("");
+            const newKeyArray = Array(keyArray.length);
+            for (let j = 0; j < keyArray.length; j++) {
+                newKeyArray[3 * (j % 3) + 2 - Math.floor(j / 3)] = keyArray[j];
+                newKey = newKeyArray.join("");
+            }
         }
         return newKey;
     }

@@ -4,6 +4,14 @@ import { Playground, TrainingGround } from "./playground.js";
 import RandomPlayer from "./randomPlayer.js";
 class Main {
     static main() {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                const cellDiv = document.createElement("div");
+                Main.board.appendChild(cellDiv);
+                cellDiv.id = `${i},${j}`;
+                cellDiv.className = "cell";
+            }
+        }
         Main.multiplayerBtn.addEventListener("click", Main.startP2PGame);
         Main.naiveMachineBtn.addEventListener("click", () => {
             Main.startP2CGame(false);
@@ -24,6 +32,7 @@ class Main {
         Main.controlBar.classList.add("bottom");
     }
 }
+Main.board = document.getElementById("board");
 Main.controlBar = document.getElementById("control-bar");
 Main.reloadBtnInControlBar = document.getElementById("reload-btn-in-control-bar");
 Main.multiplayerBtn = document.getElementById("multiplayer-btn");

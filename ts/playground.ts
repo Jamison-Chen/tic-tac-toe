@@ -26,18 +26,14 @@ class Board {
         this.div.classList.add("O");
     }
     public get diagnal1(): Mark[] {
-        return [
-            this.matrix[0][0].mark,
-            this.matrix[1][1].mark,
-            this.matrix[2][2].mark,
-        ];
+        const result: Mark[] = [];
+        for (let i = 0; i < 3; i++) result.push(this.matrix[i][i].mark);
+        return result;
     }
     public get diagnal2(): Mark[] {
-        return [
-            this.matrix[0][2].mark,
-            this.matrix[1][1].mark,
-            this.matrix[2][0].mark,
-        ];
+        const result: Mark[] = [];
+        for (let i = 0; i < 3; i++) result.push(this.matrix[i][2 - i].mark);
+        return result;
     }
     public show(): void {
         this.div.classList.add("show");
@@ -261,15 +257,13 @@ export class Playground {
         // Check each diagnal
         if (
             this.board!.diagnal1.every(
-                (mark) =>
-                    this.board?.diagnal1[0] && mark === this.board.diagnal1[0]
+                (m) => this.board?.diagnal1[0] && m === this.board.diagnal1[0]
             )
         ) {
             return this.board!.diagnal1[0];
         } else if (
             this.board!.diagnal2.every(
-                (mark) =>
-                    this.board?.diagnal2[0] && mark === this.board.diagnal2[0]
+                (m) => this.board?.diagnal2[0] && m === this.board.diagnal2[0]
             )
         ) {
             return this.board!.diagnal2[0];

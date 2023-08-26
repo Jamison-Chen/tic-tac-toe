@@ -5,6 +5,7 @@ import { Playground, TrainingGround } from "./playground.js";
 import RandomPlayer from "./randomPlayer.js";
 
 class Main {
+    private static board: HTMLElement = document.getElementById("board")!;
     private static controlBar: HTMLElement =
         document.getElementById("control-bar")!;
     private static reloadBtnInControlBar = document.getElementById(
@@ -27,6 +28,14 @@ class Main {
     private static game: Playground;
 
     public static main(): void {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                const cellDiv = document.createElement("div");
+                Main.board.appendChild(cellDiv);
+                cellDiv.id = `${i},${j}`;
+                cellDiv.className = "cell";
+            }
+        }
         Main.multiplayerBtn.addEventListener("click", Main.startP2PGame);
         Main.naiveMachineBtn.addEventListener("click", () => {
             Main.startP2CGame(false);
