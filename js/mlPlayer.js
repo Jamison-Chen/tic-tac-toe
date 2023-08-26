@@ -60,7 +60,7 @@ export class GraphPlayer extends AutoPlayer {
         const markCount = { O: 0, X: 0, B: 0 };
         for (const mark of currentKey)
             markCount[mark]++;
-        const nextStateMark = markCount.O > markCount.X ? "X" : "O";
+        const nextStateMark = markCount["O"] > markCount["X"] ? "X" : "O";
         const result = [];
         for (let i = 0; i < currentKey.length; i++) {
             if (currentKey[i] === "B") {

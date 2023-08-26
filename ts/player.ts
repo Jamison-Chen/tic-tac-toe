@@ -20,8 +20,11 @@ export abstract class AutoPlayer extends Player {
         position?: Position;
         board?: Cell[][];
     }): void;
-    public abstract select(shouldDispatchEvent: boolean): Position;
-    public dispatchEvent(position: Position, delay: number = 100): void {
+    public abstract override select(shouldDispatchEvent: boolean): Position;
+    public override dispatchEvent(
+        position: Position,
+        delay: number = 100
+    ): void {
         super.dispatchEvent(position, delay);
     }
 }

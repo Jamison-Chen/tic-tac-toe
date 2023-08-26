@@ -370,7 +370,7 @@ export class TrainingGround extends Playground {
         document.removeEventListener("stop", this.onStop);
         this.isGameRunning = false;
     }
-    public trainMachine(trainTimes: number, batch: number): void {
+    public override trainMachine(trainTimes: number, batch: number): void {
         this.isTraining = true;
         this.gamesPerEpoch = batch;
         this.remainingEpoch = Math.floor(trainTimes / batch);
@@ -453,7 +453,7 @@ export class TrainingGround extends Playground {
             });
         }
     }
-    protected judge(): Player | null {
+    protected override judge(): Player | null {
         const winnerMark = this.getWinnerMark();
         if (winnerMark) {
             this.isGameRunning = false;

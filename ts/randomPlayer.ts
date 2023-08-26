@@ -2,26 +2,21 @@ import { AutoPlayer } from "./player.js";
 import { Mark, Position } from "./playground.js";
 
 export default class RandomPlayer extends AutoPlayer {
-    private allChoices: Position[];
     private availableChoices: Position[];
     public markPlaying: Mark;
     public winCount: number;
     public constructor() {
         super();
-        this.allChoices = [
-            [0, 0],
-            [0, 1],
-            [0, 2],
-            [1, 0],
-            [1, 1],
-            [1, 2],
-            [2, 0],
-            [2, 1],
-            [2, 2],
-        ];
         this.availableChoices = structuredClone(this.allChoices);
         this.markPlaying = null;
         this.winCount = 0;
+    }
+    private get allChoices(): Position[] {
+        const result: Position[] = [];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) result.push([i, j] as Position);
+        }
+        return result;
     }
     public resetChoices(): void {
         this.availableChoices = structuredClone(this.allChoices);

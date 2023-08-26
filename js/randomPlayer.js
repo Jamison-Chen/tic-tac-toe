@@ -2,20 +2,17 @@ import { AutoPlayer } from "./player.js";
 export default class RandomPlayer extends AutoPlayer {
     constructor() {
         super();
-        this.allChoices = [
-            [0, 0],
-            [0, 1],
-            [0, 2],
-            [1, 0],
-            [1, 1],
-            [1, 2],
-            [2, 0],
-            [2, 1],
-            [2, 2],
-        ];
         this.availableChoices = structuredClone(this.allChoices);
         this.markPlaying = null;
         this.winCount = 0;
+    }
+    get allChoices() {
+        const result = [];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++)
+                result.push([i, j]);
+        }
+        return result;
     }
     resetChoices() {
         this.availableChoices = structuredClone(this.allChoices);
