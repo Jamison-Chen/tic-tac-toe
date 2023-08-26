@@ -1,6 +1,6 @@
 import HumanPlayer from "./humanPlayer.js";
 import { GraphPlayer } from "./mlPlayer.js";
-import { AutoPlayer, Player } from "./player.js";
+import { AutoPlayer, type Player } from "./player.js";
 import RandomPlayer from "./randomPlayer.js";
 
 export type Position = [0 | 1 | 2, 0 | 1 | 2];

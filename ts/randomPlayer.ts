@@ -1,5 +1,5 @@
 import { AutoPlayer } from "./player.js";
-import { Mark, Position } from "./playground.js";
+import type { Mark, Position } from "./playground.js";
 
 export default class RandomPlayer extends AutoPlayer {
     private availableChoices: Position[];

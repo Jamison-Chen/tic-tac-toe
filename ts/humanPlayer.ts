@@ -1,5 +1,5 @@
 import { Player } from "./player.js";
-import { Mark, Position } from "./playground.js";
+import type { Mark, Position } from "./playground.js";
 
 export default class HumanPlayer extends Player {
     public markPlaying: Mark;

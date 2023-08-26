@@ -1,4 +1,4 @@
-import { Cell, Mark, MoveEvent, Position } from "./playground.js";
+import type { Cell, Mark, MoveEvent, Position } from "./playground.js";
 
 export abstract class Player {
     public abstract markPlaying: Mark;

@@ -1,5 +1,5 @@
 import { AutoPlayer } from "./player.js";
-import { Cell, Mark, Position } from "./playground.js";
+import type { Cell, Mark, Position } from "./playground.js";
 import Utils from "./utils.js";
 
 class Node {
